@@ -12,7 +12,9 @@ tmp_dir = "tmp"
   # working directory, and Noticoel resolves config/data paths relative to
   # app/ (see internal/config and internal/database).
   cmd = "cd app && go build -o ./tmp/noticoel ./cmd"
-  full_bin = "cd app && ./tmp/noticoel"
+  # Load the repository-root .env (AUTH_TOKEN, TELEGRAM_*) so `air` works
+  # standalone, without going through `make dev`'s own `-include .env`.
+  full_bin = "cd app && set -a; [ -f ../.env ] && . ../.env; set +a; ./tmp/noticoel"
   include_ext = ["go", "yaml", "sql"]
   exclude_dir = [".git", "tmp", "dist", "data"]
   delay = 1000

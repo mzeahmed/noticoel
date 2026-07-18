@@ -22,6 +22,7 @@ export
         fmt vet lint test check \
         tidy update \
         migrate-up migrate-down migrate-status migrate-create sqlc \
+        send \
         release-build release-snapshot release-check \
         doctor version clean
 
@@ -99,6 +100,13 @@ migrate-create: ## Create a new SQL migration (NAME=create_events_table)
 
 sqlc: ## Regenerate Go code from SQL queries
 	cd app && sqlc generate
+
+# ==============================================================================
+# Examples
+# ==============================================================================
+
+send: ## Send a sample event (EVENT=workflow-success|workflow-failure|release, default workflow-success)
+	bash examples/scripts/send.sh examples/events/$(or $(EVENT),workflow-success).json
 
 # ==============================================================================
 # Release

@@ -2,8 +2,18 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../../.env"
+
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+    set +a
+fi
+
 NOTICOEL_URL="${NOTICOEL_URL:-http://localhost:8080}"
-NOTICOEL_TOKEN="${NOTICOEL_TOKEN:-change-me}"
+NOTICOEL_TOKEN="${NOTICOEL_TOKEN:-${AUTH_TOKEN:-change-me}}"
 
 EVENT_FILE="${1:-../events/workflow-success.json}"
 

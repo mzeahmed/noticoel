@@ -48,6 +48,7 @@ Deliver the first usable version.
 
 - [ ] Event model
 - [ ] Dispatcher
+- [ ] Telegram
 - [ ] Discord
 - [ ] ntfy
 - [ ] Email
