@@ -5,8 +5,6 @@ package app
 import (
 	"fmt"
 
-	"go.uber.org/zap"
-
 	"github.com/mzeahmed/noticeal/internal/api"
 	"github.com/mzeahmed/noticeal/internal/config"
 	"github.com/mzeahmed/noticeal/internal/database"
@@ -23,11 +21,7 @@ func Run() error {
 		return fmt.Errorf("load config: %w", err)
 	}
 
-	log, err := logger.New()
-	if err != nil {
-		return fmt.Errorf("init logger: %w", err)
-	}
-	defer func() { _ = log.Sync() }()
+	log := logger.New(cfg.Debug)
 
 	db, err := database.Open(cfg.Database.Path)
 	if err != nil {
@@ -42,8 +36,8 @@ func Run() error {
 	server := api.NewServer(cfg.Server.Addr(), version.Version, cfg.Auth.Token, log)
 
 	log.Info("starting noticeal",
-		zap.String("version", version.Version),
-		zap.String("addr", cfg.Server.Addr()),
+		"version", version.Version,
+		"addr", cfg.Server.Addr(),
 	)
 
 	if err := server.Start(); err != nil {

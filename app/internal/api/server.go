@@ -1,10 +1,9 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 // Server wraps the HTTP server serving Noticeal's API.
@@ -13,7 +12,7 @@ type Server struct {
 }
 
 // NewServer builds an HTTP server listening on addr, serving the router.
-func NewServer(addr, appVersion, authToken string, log *zap.Logger) *Server {
+func NewServer(addr, appVersion, authToken string, log *slog.Logger) *Server {
 	return &Server{
 		httpServer: &http.Server{
 			Addr:              addr,

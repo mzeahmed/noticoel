@@ -11,7 +11,7 @@
 - [x] Project vision
 - [x] Architecture
 - [x] Documentation
-- [ ] Development started
+- [x] Development started
 
 ---
 
@@ -33,11 +33,11 @@ Build a solid foundation for the project.
 
 ## Core
 
-- [ ] Configuration
-- [ ] Logger
-- [ ] HTTP server
+- [x] Configuration
+- [x] Logger
+- [x] HTTP server
 - [ ] SQLite
-- [ ] Goose
+- [x] Goose
 - [ ] sqlc
 
 ---

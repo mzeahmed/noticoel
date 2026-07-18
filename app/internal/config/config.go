@@ -11,6 +11,7 @@ import (
 
 // Config is the strongly typed application configuration.
 type Config struct {
+	Debug    bool           `yaml:"debug"`
 	Server   ServerConfig   `yaml:"server"`
 	Auth     AuthConfig     `yaml:"auth"`
 	Database DatabaseConfig `yaml:"database"`

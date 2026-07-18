@@ -259,7 +259,9 @@ Loads the application configuration from a YAML file using the Go standard libra
 
 ## logger
 
-Centralized structured logging.
+Centralized structured logging, built entirely on the Go standard library's `log/slog` — no third-party logging dependency.
+
+In development (`debug: true`), it writes human-readable text to stdout at DEBUG level. In production, it writes JSON to stdout at INFO level.
 
 ---
 

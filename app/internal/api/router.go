@@ -3,13 +3,13 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 )
 
-func newRouter(appVersion, authToken string, log *zap.Logger) *chi.Mux {
+func newRouter(appVersion, authToken string, log *slog.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Get("/health", handleHealth)

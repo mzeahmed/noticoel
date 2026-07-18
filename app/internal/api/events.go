@@ -2,14 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
-
-	"go.uber.org/zap"
 
 	"github.com/mzeahmed/noticeal/internal/event"
 )
 
-func handleCreateEvent(log *zap.Logger) http.HandlerFunc {
+func handleCreateEvent(log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var e event.Event
 		if err := json.NewDecoder(r.Body).Decode(&e); err != nil {
@@ -23,9 +22,9 @@ func handleCreateEvent(log *zap.Logger) http.HandlerFunc {
 		}
 
 		log.Info("event received",
-			zap.String("source", e.Source),
-			zap.String("type", e.Type),
-			zap.String("status", e.Status),
+			"source", e.Source,
+			"type", e.Type,
+			"status", e.Status,
 		)
 
 		writeJSON(w, http.StatusAccepted, map[string]string{"status": "accepted"})
