@@ -130,6 +130,24 @@ services:
 
 ---
 
+# Development
+
+Local development uses [Air](https://github.com/air-verse/air) for hot reloading. It is a developer convenience only — never required in production, and not involved in the release build.
+
+```bash
+go install github.com/air-verse/air@latest
+```
+
+Run the application:
+
+```bash
+air
+```
+
+Air automatically rebuilds and restarts Noticeal whenever a `.go`, `.yaml` or `.sql` file changes.
+
+---
+
 # Example
 
 ```bash

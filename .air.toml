@@ -1,0 +1,22 @@
+# Air (https://github.com/air-verse/air) — hot reload for local development
+# only. Not used in production; GoReleaser builds the release binary and
+# OCI image independently of this file.
+#
+# Run from the repository root with: air
+
+root = "app"
+tmp_dir = "tmp"
+
+[build]
+  # cd explicitly: air does not run `cmd`/the built binary with root as the
+  # working directory, and Noticeal resolves config/data paths relative to
+  # app/ (see internal/config and internal/database).
+  cmd = "cd app && go build -o ./tmp/noticeal ./cmd"
+  full_bin = "cd app && ./tmp/noticeal"
+  include_ext = ["go", "yaml", "sql"]
+  exclude_dir = [".git", "tmp", "dist", "data"]
+  delay = 1000
+  stop_on_error = true
+
+[misc]
+  clean_on_exit = true

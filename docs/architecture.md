@@ -318,6 +318,8 @@ go -C app build -o noticeal ./cmd
 
 (`make run` and `make build` wrap these same commands.)
 
+For local development, [Air](https://github.com/air-verse/air) (configured in `.air.toml`) rebuilds and restarts Noticeal automatically whenever a `.go`, `.yaml` or `.sql` file changes. It is a developer-only convenience and plays no part in the release build.
+
 GoReleaser produces prebuilt binaries and archives for Linux, macOS and Windows on every release — see the [Releases](https://github.com/mzeahmed/noticeal/releases) page.
 
 The first version is designed to run on the same server as Forgejo:

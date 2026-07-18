@@ -7,3 +7,6 @@ dist/
 
 # SQLite data (see app/config/config.yaml database.path)
 /app/data/*.db
+
+# Air (hot reload) build output
+/app/tmp/
