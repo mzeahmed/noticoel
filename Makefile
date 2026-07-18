@@ -12,7 +12,7 @@ RESET  := \033[0m
 
 .PHONY: help run fmt vet test build install clean \
         release-build release-snapshot release-check \
-        doctor version tidy update
+        doctor tidy update
 
 help: ## Show available commands
 	@echo ""
@@ -36,9 +36,6 @@ build: ## Build local binary
 install: build ## Install Noticeal locally
 	sudo install -m 755 bin/noticeal /usr/local/bin/noticeal
 	@echo "$(GREEN)✓ Installed in /usr/local/bin/noticeal$(RESET)"
-
-version: ## Display installed version
-	noticeal --version
 
 # ==============================================================================
 # Quality

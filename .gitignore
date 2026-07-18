@@ -5,5 +5,5 @@ dist/
 
 /bin/
 
-# SQLite data (see app/config/config.yml database.path)
-/data/*.db
+# SQLite data (see app/config/config.yaml database.path)
+/app/data/*.db

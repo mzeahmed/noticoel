@@ -86,24 +86,47 @@ Current features:
 
 # Installation
 
-Noticeal is a single Go binary. No container runtime is required.
+Noticeal is distributed in two ways, both shipping the exact same application. Pick whichever fits your infrastructure.
 
-Run it directly from source:
+## Option 1 — Standalone binary
 
-```bash
-go -C app run ./cmd
-```
-
-Or build it and execute the binary:
+Prebuilt binaries for Linux, macOS and Windows are published on the [Releases](https://github.com/mzeahmed/noticeal/releases) page.
 
 ```bash
-go -C app build -o noticeal ./cmd
-./app/noticeal
+tar -xzf noticeal_Linux_x86_64.tar.gz
+./noticeal
 ```
 
-`make run` and `make build` wrap these same commands.
+## Option 2 — OCI image (Docker)
 
-Prebuilt binaries for Linux, macOS and Windows are also published on the [Releases](https://github.com/mzeahmed/noticeal/releases) page.
+Every release is also published as an OCI image, built automatically by GoReleaser using [Ko](https://ko.build) — no Dockerfile is maintained in this project.
+
+```bash
+docker run \
+  --rm \
+  -p 8080:8080 \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  ghcr.io/mzeahmed/noticeal:latest
+```
+
+Or with Docker Compose:
+
+```yaml
+services:
+  noticeal:
+    image: ghcr.io/mzeahmed/noticeal:latest
+    restart: unless-stopped
+
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+
+    ports:
+      - "8080:8080"
+```
+
+> The OCI image contains the exact same Noticeal binary as the GitHub Release. Configuration and the SQLite database should be stored on mounted volumes. Docker is one deployment option among others — not a project dependency.
 
 ---
 

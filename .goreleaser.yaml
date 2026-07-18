@@ -22,7 +22,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -s -w -X github.com/mzeahmed/noticeal/internal/version.Version={{.Version}}
 
 archives:
   - formats: [tar.gz]
@@ -55,3 +55,18 @@ changelog:
 release:
   draft: false
   prerelease: auto
+
+# Build and publish OCI images without a Dockerfile.
+# Images are pushed to the GitHub Container Registry (GHCR)
+# and can be deployed with Docker or any OCI-compatible runtime.
+kos:
+  - id: noticeal
+
+    build: noticeal
+
+    repositories:
+      - ghcr.io/mzeahmed/noticeal
+
+    tags:
+      - "{{ .Version }}"
+      - latest
