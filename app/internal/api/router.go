@@ -1,18 +1,24 @@
-// Package api exposes Noticeal's minimal HTTP surface: a health check and
-// a version endpoint.
+// Package api exposes Noticeal's HTTP surface: a health check, a version
+// endpoint, and the event ingestion endpoint.
 package api
 
 import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 )
 
-func newRouter(appVersion string) *chi.Mux {
+func newRouter(appVersion, authToken string, log *zap.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Get("/health", handleHealth)
 	r.Get("/version", handleVersion(appVersion))
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(authenticate(authToken))
+		r.Post("/events", handleCreateEvent(log))
+	})
 
 	return r
 }

@@ -12,6 +12,7 @@ import (
 // Config is the strongly typed application configuration.
 type Config struct {
 	Server   ServerConfig   `yaml:"server"`
+	Auth     AuthConfig     `yaml:"auth"`
 	Database DatabaseConfig `yaml:"database"`
 }
 
@@ -24,6 +25,11 @@ type ServerConfig struct {
 // Addr returns the host:port pair the HTTP server should listen on.
 func (s ServerConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+}
+
+// AuthConfig configures the API's bearer token authentication.
+type AuthConfig struct {
+	Token string `yaml:"token"`
 }
 
 // DatabaseConfig configures the SQLite database.

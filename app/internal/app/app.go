@@ -39,7 +39,7 @@ func Run() error {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
-	server := api.NewServer(cfg.Server.Addr(), version.Version)
+	server := api.NewServer(cfg.Server.Addr(), version.Version, cfg.Auth.Token, log)
 
 	log.Info("starting noticeal",
 		zap.String("version", version.Version),
