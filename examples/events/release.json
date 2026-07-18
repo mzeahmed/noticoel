@@ -1,0 +1,13 @@
+{
+  "source": "forgejo",
+  "type": "release",
+  "status": "published",
+  "title": "New release published",
+  "message": "Version v1.4.0 has been published.",
+  "data": {
+    "repository": "yoostart/wp-yoostart",
+    "tag": "v1.4.0",
+    "author": "Ahmed",
+    "url": "https://git.yoostart.com/yoostart/wp-yoostart/releases/tag/v1.4.0"
+  }
+}

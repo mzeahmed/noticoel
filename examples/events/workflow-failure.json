@@ -1,0 +1,15 @@
+{
+  "source": "forgejo",
+  "type": "workflow",
+  "status": "failure",
+  "title": "Workflow failed",
+  "message": "The workflow failed during execution.",
+  "data": {
+    "repository": "yoostart/wp-yoostart",
+    "branch": "develop",
+    "workflow": "CI",
+    "commit": "f8b6d7e",
+    "author": "Ahmed",
+    "url": "https://git.yoostart.com/yoostart/wp-yoostart/actions/runs/42"
+  }
+}

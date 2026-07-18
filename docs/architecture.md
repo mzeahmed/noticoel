@@ -1,237 +1,170 @@
 # Noticeal Architecture
 
-> **Noticeal is an event router. Notifications are just one destination.**
+> **Noticeal is a lightweight notification service for self-hosted infrastructures.**
 
 ---
 
 # Introduction
 
-Noticeal is an open-source event routing platform.
+Noticeal receives events over HTTP and dispatches notifications to one or more channels.
 
-Its purpose is to receive events from different producers, normalize them into a common format, evaluate routing rules, and deliver them to one or more destinations.
+The first version has a single goal:
 
-Unlike traditional notification services, Noticeal does not focus on a specific provider or platform. Instead, it acts as the missing layer between systems producing events and systems consuming them.
+> Receive Forgejo workflow events and notify users.
 
-```
-                  +----------------------+
-                  |   Event Producers    |
-                  +----------------------+
-                     REST API / CLI
-                           │
-                           ▼
-                   +---------------+
-                   |   Noticeal    |
-                   +---------------+
-                           │
-                 Rule Evaluation Engine
-                           │
-                           ▼
-                   +---------------+
-                   |    Router     |
-                   +---------------+
-                     │     │     │
-                     ▼     ▼     ▼
-                 Discord ntfy Email
-```
+The architecture intentionally remains small and focused to provide a reliable foundation before introducing more advanced features.
 
 ---
 
 # Design Principles
 
-Noticeal is built around a few core principles.
-
 ## Simplicity
 
-Every package should have a single responsibility.
+Noticeal solves one problem well.
 
-Complexity should emerge from composition rather than inheritance or deeply nested abstractions.
+Avoid unnecessary abstractions and keep every package focused on a single responsibility.
 
 ---
 
 ## Self-hosted First
 
-Noticeal is designed primarily as a self-hosted application.
+Noticeal is distributed as a single, dependency-free binary for Linux, macOS and Windows.
 
 Typical deployments include:
 
-- Local development
 - VPS
 - Home server
-- Docker
-- Kubernetes
+- Any machine that can run a native binary
 
-A public SaaS offering is intentionally outside the scope of the core project.
+No external service is required.
+
+A containerized deployment (Docker) may be offered later as an alternative, but it is not part of the current architecture.
 
 ---
 
-## Platform Agnostic
+## Lightweight
 
-Noticeal should never depend on GitHub, Forgejo, GitLab, Discord, Slack or any other vendor.
+Noticeal should be easy to install, configure and maintain.
 
-External systems are considered integrations.
-
-The core should remain completely independent.
+It uses an embedded SQLite database for its own operational data, so no external database service is required — only the configured notification channels depend on the outside world.
 
 ---
 
 ## Extensible
 
-Every integration should be replaceable.
-
-Adding support for a new destination should never require modifications to the routing engine.
-
----
-
-## Event Driven
-
-Everything inside Noticeal revolves around events.
-
-An event is the universal language spoken by every package.
+Although the first release targets Forgejo notifications, the architecture should allow new notification channels and event sources to be added without major changes.
 
 ---
 
 # High-Level Architecture
 
 ```
-                Connectors
-
-         REST API       CLI
-             │           │
-             └─────┬─────┘
-                   ▼
-              Event Parser
-                   │
-                   ▼
-              Event Model
-                   │
-                   ▼
-            Rule Evaluation
-                   │
-                   ▼
-                 Router
-                   │
-        ┌──────────┼──────────┐
-        ▼          ▼          ▼
-    Discord      ntfy      Webhook
+            Forgejo
+                │
+                ▼
+         HTTP REST API
+                │
+                ▼
+          Event Handler
+                │
+                ▼
+           Dispatcher
+                │
+      ┌─────────┴─────────┐
+      ▼         ▼         ▼
+   Discord     ntfy     Email
 ```
 
 ---
 
-# Core Concepts
+# Request Flow
 
-## Connector
+1. Forgejo sends an HTTP request.
+2. Noticeal validates the request.
+3. The request is converted into an Event.
+4. The Dispatcher forwards the Event to every enabled notifier.
+5. Each notifier sends its own notification.
 
-A connector is responsible for receiving events from the outside world.
+---
 
-The initial version of Noticeal provides only two connectors:
+# Core Components
 
-- REST API
-- CLI
+## API
 
-Future versions may introduce additional connectors such as:
+The API exposes a minimal HTTP interface.
 
-- GitHub Webhooks
-- Forgejo Webhooks
-- GitLab Webhooks
-- MQTT
-- Kafka
-- NATS
+Endpoints:
 
-Connectors should never contain business logic.
+```
+POST /api/v1/events
+```
 
-Their only responsibility is to convert external data into an Event.
+Receive an event.
+
+```
+GET /health
+```
+
+Health check.
+
+```
+GET /version
+```
+
+Application version.
 
 ---
 
 ## Event
 
-The Event is the central model of the application.
-
-Every connector must convert its incoming payload into a normalized Event.
-
-Every package inside Noticeal works exclusively with Events.
-
-Example:
+The Event is the internal representation of a notification request.
 
 ```go
 type Event struct {
-	ID         string
-	Source     string
-	Type       string
-	Status     string
-	Title      string
-	Message    string
-	Metadata   map[string]string
-	Timestamp  time.Time
+    Source  string            `json:"source"`
+    Type    string            `json:"type"`
+    Status  string            `json:"status"`
+    Title   string            `json:"title"`
+    Message string            `json:"message"`
+    Data    map[string]string `json:"data,omitempty"`
 }
 ```
 
-This guarantees that the routing engine never depends on external payload formats.
+Every notifier receives the same Event object.
 
 ---
 
-## Rule Engine
+## Dispatcher
 
-The Rule Engine decides **what should happen**.
+The Dispatcher coordinates notification delivery.
 
-Example:
+Responsibilities:
 
-```
-If:
+- receive an Event
+- call every enabled notifier
+- collect delivery errors
+- report failures
 
-status == failure
-
-Then:
-
-Discord
-Email
-```
-
-Rules should remain independent from channel implementations.
-
-The Rule Engine only determines which channels should receive an event.
+The Dispatcher contains no notification-specific logic.
 
 ---
 
-## Router
+## Notifiers
 
-The Router is responsible for execution.
-
-It receives:
-
-- one Event
-- a list of Channels
-
-Its responsibilities include:
-
-- sequential or parallel delivery
-- error propagation
-- retry policy
-- delivery lifecycle
-
-The Router should never evaluate business rules.
-
----
-
-## Channel
-
-A Channel is responsible for delivering an event to an external system.
+A notifier is responsible for delivering an Event to an external service.
 
 Examples:
 
 - Discord
 - ntfy
 - Email
-- Slack
-- Teams
 - Webhook
 
-Every channel implements the same interface.
+Every notifier implements the same interface.
 
 ```go
-type Channel interface {
-	Name() string
-	Send(ctx context.Context, event Event) error
+type Notifier interface {
+    Notify(ctx context.Context, event Event) error
 }
 ```
 
@@ -242,48 +175,35 @@ type Channel interface {
 ```
 noticeal/
 
-cmd/
-    noticeal/
+app/
+    cmd/
+        noticeal.go
 
-internal/
+    internal/
 
-    api/
-
-    auth/
-
-    channel/
+        api/
+        config/
+        dispatcher/
+        event/
+        logger/
+        notifier/
+        store/
+        version/
 
     config/
+        config.yml
 
-    event/
+assets/
 
-    logger/
-
-    router/
-
-    rule/
-
-    storage/
-
-    connector/
-
-    version/
-
-migrations/
+data/
 
 docs/
 
 examples/
-
-scripts/
-
-Dockerfile
-
-docker-compose.yml
+    events/
+    scripts/
 
 Makefile
-
-README.md
 ```
 
 ---
@@ -296,115 +216,48 @@ HTTP server.
 
 Responsibilities:
 
-- Routing
-- Request validation
-- JSON serialization
-- Authentication
-- Error responses
-
-No business logic.
+- routing
+- request validation
+- JSON responses
 
 ---
 
-## connector
+## dispatcher
 
-Receives events.
+Coordinates notification delivery.
 
-Examples:
+---
 
-- REST API
-- CLI
+## notifier
 
-Future:
+Contains every notification implementation.
 
-- GitHub
-- Forgejo
-- GitLab
+Each notifier is independent.
 
 ---
 
 ## event
 
-Defines the Event model.
-
-No persistence.
-
-No routing.
-
-No networking.
+Defines the Event model shared across the application.
 
 ---
 
-## rule
+## store
 
-Evaluates routing rules.
+Persists operational data (events and deliveries) to SQLite.
 
-Input:
-
-```
-Event
-```
-
-Output:
-
-```
-[]Channel
-```
-
----
-
-## router
-
-Executes deliveries.
-
-Input:
-
-```
-Event
-
-+
-
-Channels
-```
-
-Responsibilities:
-
-- Send events
-- Retry
-- Collect results
-
----
-
-## channel
-
-Contains every delivery implementation.
-
-Each channel is completely independent.
-
----
-
-## storage
-
-Persistence layer.
-
-Responsibilities:
-
-- repositories
-- database access
-
-Never contains business logic.
+Schema migrations are managed with Goose, and queries are generated with sqlc.
 
 ---
 
 ## config
 
-Application configuration.
+Loads the application configuration.
 
 Supported sources:
 
 - YAML
 - Environment variables
-- CLI flags
 
 ---
 
@@ -414,190 +267,104 @@ Centralized structured logging.
 
 ---
 
-## auth
-
-Authentication.
-
-Initially:
-
-API Keys.
-
-Future:
-
-JWT
-
-RBAC
-
----
-
 ## version
 
-Application version.
-
-Injected during build.
+Application version information.
 
 ---
 
 # Configuration
 
-Version 1 uses a YAML configuration.
-
 Example:
 
 ```yaml
 server:
-  host: 0.0.0.0
   port: 8080
 
-channels:
+auth:
+  token: your-secret-token
+
+database:
+  driver: sqlite
+  path: ./data/noticeal.db
+
+notifications:
 
   discord:
-    webhook: https://...
+    enabled: true
+    webhook: https://discord...
 
   ntfy:
-    topic: noticeal
+    enabled: false
 
-rules:
-
-  - match:
-      status: failure
-
-    send:
-      - discord
-      - ntfy
+  email:
+    enabled: false
 ```
-
----
-
-# Persistence
-
-Noticeal stores only operational data.
-
-Examples:
-
-- Events
-- Deliveries
-- Channels
-- Rules
-
-Business logic must never depend on persistence.
-
-Removing the database should only remove history, never the routing capability.
 
 ---
 
 # Deployment
 
-Noticeal is designed to run in multiple environments.
+Noticeal ships as a single, self-contained binary. No container runtime is required.
 
-Examples:
-
-```
-Developer machine
-
-↓
-
-Docker Compose
-```
+Run it from source:
 
 ```
-VPS
-
-↓
-
-Docker
+go -C app run ./cmd
 ```
 
+Or build and execute the binary directly:
+
 ```
-Kubernetes
-
-↓
-
-Deployment
+go -C app build -o noticeal ./cmd
+./app/noticeal
 ```
 
-The application should not assume where it is running.
+(`make run` and `make build` wrap these same commands.)
+
+GoReleaser produces prebuilt binaries and archives for Linux, macOS and Windows on every release — see the [Releases](https://github.com/mzeahmed/noticeal/releases) page.
+
+The first version is designed to run on the same server as Forgejo:
+
+```
+Forgejo
+      │
+localhost
+      │
+      ▼
+ Noticeal
+      │
+      ▼
+ Discord
+```
+
+No public endpoint is required.
+
+A Docker image is not provided today but may be introduced later as an optional, additional way to deploy Noticeal.
 
 ---
 
-# REST API
+# Future Evolution
 
-Version 1 exposes a minimal API.
+The current architecture intentionally focuses on notification delivery.
 
-```
-POST /api/v1/events
-```
+As the project grows, Noticeal may evolve into a more generic event routing platform by introducing features such as:
 
-Receive an Event.
+- routing rules
+- multiple event sources
+- dashboards
+- plugins
+- optional containerized deployment (Docker)
 
----
-
-```
-GET /health
-```
-
-Health check.
-
----
-
-```
-GET /version
-```
-
-Version information.
-
----
-
-```
-GET /metrics
-```
-
-Prometheus metrics.
+These features will build on the existing architecture without changing its core philosophy.
 
 ---
 
 # Development Principles
 
-- Small packages.
-- Single responsibility.
-- Composition over inheritance.
-- No framework.
+- Keep packages small.
+- Prefer composition over complexity.
+- Avoid unnecessary abstractions.
+- One responsibility per package.
 - Keep dependencies minimal.
-- Interfaces only at architectural boundaries.
-- Prefer explicit code over magic.
-- The Event is the only shared model.
-- Connectors never deliver events.
-- Channels never evaluate rules.
-- The Router never knows external services.
-- The Rule Engine never sends notifications.
-
----
-
-# Long-Term Vision
-
-Noticeal aims to become the standard event routing layer for self-hosted infrastructures.
-
-Applications should no longer integrate directly with dozens of notification providers.
-
-Instead, they emit Events.
-
-Noticeal becomes responsible for:
-
-- Event normalization
-- Rule evaluation
-- Routing
-- Delivery
-- Retry policies
-- Observability
-
-Notifications are only one possible outcome.
-
-The architecture should remain flexible enough to support future integrations such as:
-
-- Message brokers
-- Workflow engines
-- Serverless platforms
-- Internal APIs
-- Custom extensions
-
-without changing the core design.
+- Build only what is needed.

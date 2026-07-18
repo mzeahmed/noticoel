@@ -4,164 +4,168 @@
 
 <br>
 
-**An open-source event routing platform for self-hosted infrastructures.**
+**A lightweight notification service for self-hosted infrastructures.**
 
-Receive events. Evaluate rules. Deliver anywhere.
+Receive events. Notify anywhere.
 
 <br>
 
-[//]: # ([![CI]&#40;https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml/badge.svg&#41;]&#40;https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml&#41;)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mzeahmed/noticeal)](https://goreportcard.com/report/github.com/mzeahmed/noticeal)
 [![Go Reference](https://pkg.go.dev/badge/github.com/mzeahmed/noticeal.svg)](https://pkg.go.dev/github.com/mzeahmed/noticeal)
 [![Release](https://img.shields.io/github/v/release/mzeahmed/noticeal)](https://github.com/mzeahmed/noticeal/releases)
 [![License](https://img.shields.io/github/license/mzeahmed/noticeal)](LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/mzeahmed/noticeal)](app/go.mod)
 
-[//]: # ([![Coverage]&#40;https://codecov.io/gh/mzeahmed/noticeal/branch/main/graph/badge.svg&#41;]&#40;https://codecov.io/gh/mzeahmed/noticeal&#41;)
-[//]: # ([![Open Issues]&#40;https://img.shields.io/github/issues/mzeahmed/noticeal&#41;]&#40;https://github.com/mzeahmed/noticeal/issues&#41;)
-[//]: # ([![Pull Requests]&#40;https://img.shields.io/github/issues-pr/mzeahmed/noticeal&#41;]&#40;https://github.com/mzeahmed/noticeal/pulls&#41;)
-[//]: # ([![Downloads]&#40;https://img.shields.io/github/downloads/mzeahmed/noticeal/total&#41;]&#40;https://github.com/mzeahmed/noticeal/releases&#41;)
-
 </div>
 
 ---
 
-## Overview
+# Overview
 
-Noticeal is an event routing platform built for self-hosted environments.
+Noticeal is a lightweight notification service designed for self-hosted environments.
 
-Instead of integrating every application with multiple notification providers, applications simply send events to Noticeal.
+It receives events over HTTP and dispatches notifications to one or more channels.
 
-Noticeal evaluates routing rules and delivers events to the appropriate destinations.
+The first version focuses on a simple use case:
 
-The core remains independent from external platforms, making integrations simple, modular and extensible.
+> Receive Forgejo workflow events and send notifications.
 
----
-
-## Why Noticeal?
-
-Modern infrastructures generate events everywhere:
-
-- CI/CD pipelines
-- Deployment platforms
-- Monitoring systems
-- Internal applications
-- Automation tools
-
-Most applications implement notification logic themselves.
-
-Noticeal centralizes this responsibility.
-
-Applications emit events.
-
-Noticeal decides what happens next.
+The architecture is intentionally small, making it easy to deploy, understand and extend.
 
 ---
 
-## Architecture
+# Why Noticeal?
+
+CI/CD pipelines continuously generate valuable events:
+
+- Build succeeded
+- Build failed
+- Release created
+- Deployment completed
+
+Most self-hosted platforms provide webhooks, but turning those events into useful notifications often requires custom scripts.
+
+Noticeal removes that complexity by providing a single notification endpoint.
+
+---
+
+# Architecture
 
 ```text
-            Connectors
-
-      REST API        CLI
-          │            │
-          └──────┬─────┘
-                 ▼
-             Event Model
-                 │
-                 ▼
-         Processing Engine
-        ├─────────────────┐
-        │                 │
-        ▼                 ▼
- Rule Evaluation     Delivery
-        │                 │
-        └────────┬────────┘
-                 ▼
-              Channels
+        Forgejo
+           │
+           ▼
+     HTTP REST API
+           │
+           ▼
+      Dispatcher
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+ Discord       ntfy
+               ▼
+             Email
 ```
 
 ---
 
-## Features
+# Features
 
-### Event Processing
-
-- Event-driven architecture
-- Rule-based routing
-- Normalized event model
-- Processing engine
-- Structured logging
-
-### Connectors
+Current features:
 
 - REST API
-- CLI
-
-### Channels
-
-- Webhook
-- Discord
-- ntfy
-- Email
+- JSON events
+- Multiple notification channels
+- YAML configuration
+- SQLite storage
+- Structured logging
+- Single binary, no dependencies
+- Self-hosted
 
 ---
 
-## Example
+# Installation
 
-Send an event using the REST API.
+Noticeal is a single Go binary. No container runtime is required.
+
+Run it directly from source:
+
+```bash
+go -C app run ./cmd
+```
+
+Or build it and execute the binary:
+
+```bash
+go -C app build -o noticeal ./cmd
+./app/noticeal
+```
+
+`make run` and `make build` wrap these same commands.
+
+Prebuilt binaries for Linux, macOS and Windows are also published on the [Releases](https://github.com/mzeahmed/noticeal/releases) page.
+
+---
+
+# Example
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/events \
   -H "Content-Type: application/json" \
   -d '{
-    "source": "forgejo",
-    "type": "workflow",
-    "status": "success",
-    "title": "Deployment completed",
-    "message": "BookingApp deployed successfully"
+    "source":"forgejo",
+    "type":"workflow",
+    "status":"success",
+    "title":"Deployment completed",
+    "message":"BookingApp deployed successfully"
   }'
 ```
 
 ---
 
-## Philosophy
+# Roadmap
 
-Noticeal follows a simple principle:
+The long-term vision is to gradually evolve Noticeal into a generic event routing platform.
 
-> Applications should emit events. Noticeal should decide what to do with them.
+The first milestone focuses on solving one problem well:
 
-This keeps applications focused on their own business logic while Noticeal handles routing and delivery.
+- Receive events
+- Dispatch notifications
+- Stay simple
+
+Future versions will introduce:
+
+- Rule-based routing
+- Additional connectors
+- Dashboard
+- Event history
+- More notification channels
 
 ---
 
-## Documentation
+# Documentation
 
 - [Architecture](docs/architecture.md)
 - [Roadmap](docs/roadmap.md)
 
-More documentation will be added as the project evolves.
-
 ---
 
-## Contributing
+# Contributing
 
 Contributions are welcome.
 
-If you find a bug, have an idea, or want to contribute, feel free to open an issue or submit a pull request.
+Feel free to open an issue or submit a pull request.
 
 ---
 
-## Project Status
+# Project Status
 
-⚠️ Noticeal is currently under active development.
+⚠️ Noticeal is under active development.
 
-The project is not production-ready yet and the API may change before the first stable release.
+The API is experimental and may change before the first stable release.
 
 ---
 
-## License
+# License
 
-Noticeal is released under the MIT License.
-
-See the [LICENSE](LICENSE) file for details.
+MIT License.

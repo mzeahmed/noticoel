@@ -1,0 +1,37 @@
+server:
+  host: 0.0.0.0
+  port: 8080
+
+auth:
+  token: change-me
+
+database:
+  path: ./data/noticeal.db
+
+notifiers:
+
+  telegram:
+    enabled: true
+    bot_token: ""
+    chat_id: ""
+
+  ntfy:
+    enabled: false
+    server: https://ntfy.sh
+    topic: ""
+
+  webhook:
+    enabled: false
+    url: ""
+
+  discord:
+    enabled: false
+    webhook: ""
+
+  email:
+    enabled: false
+    host: ""
+    port: 587
+    username: ""
+    password: ""
+    from: ""
