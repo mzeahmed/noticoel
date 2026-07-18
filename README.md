@@ -10,7 +10,7 @@ Receive events. Evaluate rules. Deliver anywhere.
 
 <br>
 
-[![CI](https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml/badge.svg)](https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml)
+[//]: # ([![CI]&#40;https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml/badge.svg&#41;]&#40;https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml&#41;)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mzeahmed/noticeal)](https://goreportcard.com/report/github.com/mzeahmed/noticeal)
 [![Go Reference](https://pkg.go.dev/badge/github.com/mzeahmed/noticeal.svg)](https://pkg.go.dev/github.com/mzeahmed/noticeal)
 [![Release](https://img.shields.io/github/v/release/mzeahmed/noticeal)](https://github.com/mzeahmed/noticeal/releases)
