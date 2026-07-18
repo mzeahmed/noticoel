@@ -1,17 +1,26 @@
 <div align="center">
 
-# Noticeal
+<img src="assets/logo.png" alt="Noticeal Logo" width="220" style="border-radius: 16px;">
+
+<br>
 
 **An open-source event routing platform for self-hosted infrastructures.**
 
 Receive events. Evaluate rules. Deliver anywhere.
+
+<br>
 
 [![CI](https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml/badge.svg)](https://github.com/mzeahmed/noticeal/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mzeahmed/noticeal)](https://goreportcard.com/report/github.com/mzeahmed/noticeal)
 [![Go Reference](https://pkg.go.dev/badge/github.com/mzeahmed/noticeal.svg)](https://pkg.go.dev/github.com/mzeahmed/noticeal)
 [![Release](https://img.shields.io/github/v/release/mzeahmed/noticeal)](https://github.com/mzeahmed/noticeal/releases)
 [![License](https://img.shields.io/github/license/mzeahmed/noticeal)](LICENSE)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/mzeahmed/noticeal)](go.mod)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mzeahmed/noticeal)](app/go.mod)
+
+[//]: # ([![Coverage]&#40;https://codecov.io/gh/mzeahmed/noticeal/branch/main/graph/badge.svg&#41;]&#40;https://codecov.io/gh/mzeahmed/noticeal&#41;)
+[//]: # ([![Open Issues]&#40;https://img.shields.io/github/issues/mzeahmed/noticeal&#41;]&#40;https://github.com/mzeahmed/noticeal/issues&#41;)
+[//]: # ([![Pull Requests]&#40;https://img.shields.io/github/issues-pr/mzeahmed/noticeal&#41;]&#40;https://github.com/mzeahmed/noticeal/pulls&#41;)
+[//]: # ([![Downloads]&#40;https://img.shields.io/github/downloads/mzeahmed/noticeal/total&#41;]&#40;https://github.com/mzeahmed/noticeal/releases&#41;)
 
 </div>
 
