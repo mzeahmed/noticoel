@@ -30,7 +30,10 @@ func (s ServerConfig) Addr() string {
 
 // AuthConfig configures the API's bearer token authentication.
 type AuthConfig struct {
-	Token string `yaml:"token"`
+	// Token authenticates incoming requests. It is read from the
+	// AUTH_TOKEN environment variable rather than the YAML file, so the
+	// secret never needs to be committed to version control.
+	Token string `yaml:"-"`
 }
 
 // DatabaseConfig configures the SQLite database.
@@ -48,6 +51,11 @@ func Load(path string) (*Config, error) {
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("decode config: %w", err)
+	}
+
+	cfg.Auth.Token = os.Getenv("AUTH_TOKEN")
+	if cfg.Auth.Token == "" {
+		return nil, fmt.Errorf("AUTH_TOKEN environment variable is required")
 	}
 
 	return &cfg, nil

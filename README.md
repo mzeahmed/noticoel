@@ -138,6 +138,12 @@ Local development uses [Air](https://github.com/air-verse/air) for hot reloading
 go install github.com/air-verse/air@latest
 ```
 
+Copy the environment template and set your own token:
+
+```bash
+cp .env.example .env
+```
+
 Run the application:
 
 ```bash
@@ -145,6 +151,44 @@ air
 ```
 
 Air automatically rebuilds and restarts Noticoel whenever a `.go`, `.yaml` or `.sql` file changes.
+
+---
+
+# Notifiers
+
+## Telegram
+
+> The Telegram notifier is not wired up yet (see [Roadmap](docs/roadmap.md)), but the credentials below are already read from the environment, so you can set them up ahead of time.
+
+### 1. Create a bot
+
+1. Open a chat with [@BotFather](https://t.me/BotFather) on Telegram.
+2. Send `/newbot` and follow the prompts to pick a name and a username.
+3. BotFather replies with a bot token, e.g. `123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`. This is your `TELEGRAM_BOT_TOKEN`.
+
+### 2. Get the chat ID
+
+- **Direct message**: start a chat with your bot and send it any message.
+- **Group**: add the bot to the group and send any message (mentioning the bot if the group has privacy mode restrictions).
+
+Then open the following URL in a browser, replacing `<TOKEN>`:
+
+```
+https://api.telegram.org/bot<TOKEN>/getUpdates
+```
+
+Find `"chat":{"id": ...}` in the JSON response — that number is your `TELEGRAM_CHAT_ID` (group IDs are negative).
+
+### 3. Configure Noticoel
+
+Set both values in your `.env` (local dev, see [Development](#development)) or as real environment variables in production:
+
+```bash
+TELEGRAM_BOT_TOKEN=123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TELEGRAM_CHAT_ID=-123456789
+```
+
+`notifiers.telegram.enabled` in `config/config.yaml` must also be `true` (the default).
 
 ---
 

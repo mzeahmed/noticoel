@@ -1,5 +1,8 @@
 .idea/
 
+# Local secrets (see .env.example)
+.env
+
 # Added by goreleaser init:
 dist/
 

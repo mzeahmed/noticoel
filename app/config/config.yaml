@@ -4,9 +4,6 @@ server:
   host: 0.0.0.0
   port: 8080
 
-auth:
-  token: change-me
-
 database:
   path: ./data/noticoel.db
 
@@ -14,8 +11,6 @@ notifiers:
 
   telegram:
     enabled: true
-    bot_token: ""
-    chat_id: ""
 
   ntfy:
     enabled: false

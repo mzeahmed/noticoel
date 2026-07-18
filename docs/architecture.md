@@ -259,7 +259,7 @@ Schema lives in `internal/database/migrations` (Goose); queries live in `interna
 
 ## config
 
-Loads the application configuration from a YAML file using the Go standard library together with gopkg.in/yaml.v3. No other configuration source is supported.
+Loads the application configuration from a YAML file using the Go standard library together with gopkg.in/yaml.v3. The bearer auth token is the one exception: it is read from the `AUTH_TOKEN` environment variable instead, so it never needs to be committed to the YAML file (see [Configuration](#configuration)).
 
 ---
 
@@ -285,9 +285,6 @@ Example:
 server:
   port: 8080
 
-auth:
-  token: your-secret-token
-
 database:
   driver: sqlite
   path: ./data/noticoel.db
@@ -304,6 +301,8 @@ notifications:
   email:
     enabled: false
 ```
+
+The bearer auth token is not part of the YAML file. It is read from the `AUTH_TOKEN` environment variable, set via a `.env` file at the repository root for local development (copy `.env.example` to `.env`) or injected directly by the process manager/container runtime in production.
 
 ---
 
