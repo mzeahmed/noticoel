@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="Noticeal Logo" width="220" style="border-radius: 16px;">
+<img src="assets/logo.png" alt="Noticeal Logo" width="220">
 
 <br>
 
