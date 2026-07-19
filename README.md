@@ -10,11 +10,10 @@ Receive events. Notify anywhere.
 
 <br>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/mzeahmed/noticoel)](https://goreportcard.com/report/github.com/mzeahmed/noticoel)
 [![Go Reference](https://pkg.go.dev/badge/github.com/mzeahmed/noticoel.svg)](https://pkg.go.dev/github.com/mzeahmed/noticoel)
 [![Release](https://img.shields.io/github/v/release/mzeahmed/noticoel)](https://github.com/mzeahmed/noticoel/releases)
 [![License](https://img.shields.io/github/license/mzeahmed/noticoel)](LICENSE)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/mzeahmed/noticoel)](app/go.mod)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/mzeahmed/noticoel?filename=app%2Fgo.mod)](app/go.mod)
 
 </div>
 
