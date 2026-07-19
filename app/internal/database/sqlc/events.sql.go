@@ -8,47 +8,63 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createEvent = `-- name: CreateEvent :one
-INSERT INTO events (source, type, status, title, message, data)
-VALUES (?, ?, ?, ?, ?, ?) RETURNING id, SOURCE, TYPE, status, title, message, DATA, created_at
+INSERT INTO events (source, category, type, severity, title, message, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, source, category, type, severity, title, message, metadata, created_at
 `
 
 type CreateEventParams struct {
-	Source  string         `json:"source"`
-	Type    string         `json:"type"`
-	Status  string         `json:"status"`
-	Title   string         `json:"title"`
-	Message string         `json:"message"`
-	Data    sql.NullString `json:"data"`
+	Source   string         `json:"source"`
+	Category sql.NullString `json:"category"`
+	Type     string         `json:"type"`
+	Severity string         `json:"severity"`
+	Title    string         `json:"title"`
+	Message  string         `json:"message"`
+	Metadata sql.NullString `json:"metadata"`
 }
 
-func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error) {
+type CreateEventRow struct {
+	ID        int64          `json:"id"`
+	Source    string         `json:"source"`
+	Category  sql.NullString `json:"category"`
+	Type      string         `json:"type"`
+	Severity  string         `json:"severity"`
+	Title     string         `json:"title"`
+	Message   string         `json:"message"`
+	Metadata  sql.NullString `json:"metadata"`
+	CreatedAt time.Time      `json:"created_at"`
+}
+
+func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (CreateEventRow, error) {
 	row := q.db.QueryRowContext(ctx, createEvent,
 		arg.Source,
+		arg.Category,
 		arg.Type,
-		arg.Status,
+		arg.Severity,
 		arg.Title,
 		arg.Message,
-		arg.Data,
+		arg.Metadata,
 	)
-	var i Event
+	var i CreateEventRow
 	err := row.Scan(
 		&i.ID,
 		&i.Source,
+		&i.Category,
 		&i.Type,
-		&i.Status,
+		&i.Severity,
 		&i.Title,
 		&i.Message,
-		&i.Data,
+		&i.Metadata,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getEvents = `-- name: GetEvents :many
-SELECT id, source, type, status, title, message, data, created_at
+SELECT id, source, type, severity, title, message, metadata, created_at, category
 FROM events
 ORDER BY id DESC
 LIMIT ? OFFSET ?
@@ -72,11 +88,12 @@ func (q *Queries) GetEvents(ctx context.Context, arg GetEventsParams) ([]Event, 
 			&i.ID,
 			&i.Source,
 			&i.Type,
-			&i.Status,
+			&i.Severity,
 			&i.Title,
 			&i.Message,
-			&i.Data,
+			&i.Metadata,
 			&i.CreatedAt,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}

@@ -34,16 +34,13 @@ func (n *Notifier) Name() string {
 	return "telegram"
 }
 
-func (n *Notifier) Notify(
-	ctx context.Context,
-	msg notifier.Message,
-) notifier.Result {
+func (n *Notifier) Notify(ctx context.Context, msg notifier.Message) notifier.Result {
 
 	body := sendMessageRequest{
 		ChatID: n.config.ChatID,
 		Text: fmt.Sprintf(
 			"[%s] %s\n\n%s",
-			msg.Status,
+			msg.Severity,
 			msg.Title,
 			msg.Message,
 		),

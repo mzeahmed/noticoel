@@ -9,7 +9,7 @@ import (
 )
 
 type Querier interface {
-	CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error)
+	CreateEvent(ctx context.Context, arg CreateEventParams) (CreateEventRow, error)
 	GetEvents(ctx context.Context, arg GetEventsParams) ([]Event, error)
 }
 

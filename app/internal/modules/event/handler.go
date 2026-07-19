@@ -45,7 +45,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		"id", created.ID,
 		"source", created.Source,
 		"type", created.Type,
-		"status", created.Status,
+		"severity", created.Severity,
 	)
 
 	response.JSON(w, http.StatusAccepted, created)

@@ -1,10 +1,11 @@
 {
   "source": "forgejo",
-  "type": "workflow",
-  "status": "success",
+  "category": "ci",
+  "type": "workflow.succeeded",
+  "severity": "info",
   "title": "Workflow completed",
   "message": "The workflow completed successfully.",
-  "data": {
+  "metadata": {
     "repository": "example/example-app",
     "branch": "develop",
     "workflow": "CI",

@@ -1,10 +1,11 @@
 {
   "source": "forgejo",
-  "type": "workflow",
-  "status": "failure",
+  "category": "ci",
+  "type": "workflow.failed",
+  "severity": "error",
   "title": "Workflow failed",
   "message": "The workflow failed during execution.",
-  "data": {
+  "metadata": {
     "repository": "example/example-app",
     "branch": "develop",
     "workflow": "CI",

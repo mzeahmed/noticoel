@@ -13,9 +13,10 @@ type Event struct {
 	ID        int64          `json:"id"`
 	Source    string         `json:"source"`
 	Type      string         `json:"type"`
-	Status    string         `json:"status"`
+	Severity  string         `json:"severity"`
 	Title     string         `json:"title"`
 	Message   string         `json:"message"`
-	Data      sql.NullString `json:"data"`
+	Metadata  sql.NullString `json:"metadata"`
 	CreatedAt time.Time      `json:"created_at"`
+	Category  sql.NullString `json:"category"`
 }

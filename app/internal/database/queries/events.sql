@@ -1,6 +1,6 @@
 -- name: CreateEvent :one
-INSERT INTO events (source, type, status, title, message, data)
-VALUES (?, ?, ?, ?, ?, ?) RETURNING id, SOURCE, TYPE, status, title, message, DATA, created_at;
+INSERT INTO events (source, category, type, severity, title, message, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, source, category, type, severity, title, message, metadata, created_at;
 
 -- name: GetEvents :many
 SELECT *

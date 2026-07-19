@@ -32,18 +32,19 @@ func NewService(db *sql.DB, disp *dispatcher.Dispatcher, log *slog.Logger) *Serv
 // Notifier failures are logged but do not fail the request: the event is
 // already durably stored, and delivery is best-effort.
 func (s *Service) Create(ctx context.Context, e Event) (Event, error) {
-	data, err := marshalData(e.Data)
+	metadata, err := marshalMetadata(e.Metadata)
 	if err != nil {
 		return Event{}, err
 	}
 
 	row, err := s.queries.CreateEvent(ctx, sqlc.CreateEventParams{
-		Source:  e.Source,
-		Type:    e.Type,
-		Status:  e.Status,
-		Title:   e.Title,
-		Message: e.Message,
-		Data:    data,
+		Source:   e.Source,
+		Category: nullString(e.Category),
+		Type:     e.Type,
+		Severity: string(e.Severity),
+		Title:    e.Title,
+		Message:  e.Message,
+		Metadata: metadata,
 	})
 	if err != nil {
 		return Event{}, err
@@ -60,9 +61,9 @@ func (s *Service) Create(ctx context.Context, e Event) (Event, error) {
 // dispatch sends e to every registered notifier and logs any failure.
 func (s *Service) dispatch(ctx context.Context, e Event) {
 	results := s.dispatcher.Dispatch(ctx, notifier.Message{
-		Status:  e.Status,
-		Title:   e.Title,
-		Message: e.Message,
+		Severity: string(e.Severity),
+		Title:    e.Title,
+		Message:  e.Message,
 	})
 
 	for _, result := range results {
@@ -86,7 +87,7 @@ func (s *Service) List(ctx context.Context, limit, offset int64) ([]Event, error
 
 	events := make([]Event, len(rows))
 	for i, row := range rows {
-		data, err := unmarshalData(row.Data)
+		metadata, err := unmarshalMetadata(row.Metadata)
 		if err != nil {
 			return nil, err
 		}
@@ -94,11 +95,12 @@ func (s *Service) List(ctx context.Context, limit, offset int64) ([]Event, error
 		events[i] = Event{
 			ID:        row.ID,
 			Source:    row.Source,
+			Category:  row.Category.String,
 			Type:      row.Type,
-			Status:    row.Status,
+			Severity:  Severity(row.Severity),
 			Title:     row.Title,
 			Message:   row.Message,
-			Data:      data,
+			Metadata:  metadata,
 			CreatedAt: row.CreatedAt,
 		}
 	}
@@ -106,14 +108,24 @@ func (s *Service) List(ctx context.Context, limit, offset int64) ([]Event, error
 	return events, nil
 }
 
-// marshalData encodes data as JSON for storage in the events.data column,
-// leaving it NULL when there is nothing to store.
-func marshalData(data map[string]string) (sql.NullString, error) {
-	if len(data) == 0 {
+// nullString converts an optional string field to sql.NullString, leaving
+// it NULL when empty rather than storing an empty string.
+func nullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{}
+	}
+
+	return sql.NullString{String: s, Valid: true}
+}
+
+// marshalMetadata encodes metadata as JSON for storage in the
+// events.metadata column, leaving it NULL when there is nothing to store.
+func marshalMetadata(metadata map[string]string) (sql.NullString, error) {
+	if len(metadata) == 0 {
 		return sql.NullString{}, nil
 	}
 
-	b, err := json.Marshal(data)
+	b, err := json.Marshal(metadata)
 	if err != nil {
 		return sql.NullString{}, err
 	}
@@ -121,15 +133,15 @@ func marshalData(data map[string]string) (sql.NullString, error) {
 	return sql.NullString{String: string(b), Valid: true}, nil
 }
 
-// unmarshalData decodes the events.data column back into a map, returning
-// nil when the column is NULL.
-func unmarshalData(data sql.NullString) (map[string]string, error) {
-	if !data.Valid {
+// unmarshalMetadata decodes the events.metadata column back into a map,
+// returning nil when the column is NULL.
+func unmarshalMetadata(metadata sql.NullString) (map[string]string, error) {
+	if !metadata.Valid {
 		return nil, nil
 	}
 
 	var m map[string]string
-	if err := json.Unmarshal([]byte(data.String), &m); err != nil {
+	if err := json.Unmarshal([]byte(metadata.String), &m); err != nil {
 		return nil, err
 	}
 

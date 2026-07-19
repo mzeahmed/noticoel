@@ -7,9 +7,9 @@ import "context"
 // notifier/dispatcher never depends on it (event.Service depends on
 // dispatcher, not the other way around).
 type Message struct {
-	Status  string
-	Title   string
-	Message string
+	Severity string
+	Title    string
+	Message  string
 }
 
 type Notifier interface {

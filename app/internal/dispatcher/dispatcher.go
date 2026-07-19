@@ -18,11 +18,7 @@ func (d *Dispatcher) Register(n notifier.Notifier) {
 	d.notifiers = append(d.notifiers, n)
 }
 
-func (d *Dispatcher) Dispatch(
-	ctx context.Context,
-	msg notifier.Message,
-) []notifier.Result {
-
+func (d *Dispatcher) Dispatch(ctx context.Context, msg notifier.Message) []notifier.Result {
 	results := make([]notifier.Result, 0, len(d.notifiers))
 
 	for _, n := range d.notifiers {

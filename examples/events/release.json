@@ -1,10 +1,11 @@
 {
   "source": "forgejo",
-  "type": "release",
-  "status": "published",
+  "category": "release",
+  "type": "release.published",
+  "severity": "info",
   "title": "New release published",
   "message": "Version v1.4.0 has been published.",
-  "data": {
+  "metadata": {
     "repository": "example/example-app",
     "tag": "v1.4.0",
     "author": "Ahmed",
