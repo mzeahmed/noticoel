@@ -1,16 +1,16 @@
 # Noticoel Architecture
 
-> **Noticoel is a lightweight notification service for self-hosted infrastructures.**
+> **Noticoel is a lightweight event hub for self-hosted infrastructures.**
 
 ---
 
 # Introduction
 
-Noticoel receives events over HTTP and dispatches notifications to one or more channels.
+Noticoel receives events over HTTP from any application or infrastructure service and dispatches notifications to one or more channels.
 
-The first version has a single goal:
+Applications publish events; they know nothing about Telegram, Discord or Email — Noticoel owns that decision.
 
-> Receive Forgejo workflow events and notify users.
+> Forgejo workflow events are one example among many — see [Request Flow](#request-flow).
 
 The architecture intentionally remains small and focused to provide a reliable foundation before introducing more advanced features.
 
@@ -38,7 +38,7 @@ Typical deployments include:
 
 No external service is required.
 
-A containerized deployment (Docker) may be offered later as an alternative, but it is not part of the current architecture.
+Every release also publishes a matching OCI image as an alternative to the standalone binary — see [Deployment](#deployment).
 
 ---
 
@@ -52,34 +52,37 @@ It uses an embedded SQLite database for its own operational data, so no external
 
 ## Extensible
 
-Although the first release targets Forgejo notifications, the architecture should allow new notification channels and event sources to be added without major changes.
+Noticoel is not tied to any single event source. The architecture allows new event producers and new notification channels to be added without major changes.
 
 ---
 
 # High-Level Architecture
 
 ```
-            Forgejo
-                │
-                ▼
-         HTTP REST API
-                │
-                ▼
-          Event Handler
-                │
-                ▼
-           Dispatcher
-                │
-      ┌─────────┴─────────┐
-      ▼         ▼         ▼
-   Discord     ntfy     Email
+    Forgejo   Yoostart   BookingApp   Monitoring   Cron Jobs
+        │        │           │            │            │
+        └────────┴─────┬─────┴────────────┴────────────┘
+                        ▼
+                 HTTP REST API
+                        │
+                        ▼
+                  Event Handler
+                        │
+                        ▼
+                   Dispatcher
+                        │
+        ┌───────────────┼───────────────┬───────────────┐
+        ▼                ▼               ▼               ▼
+    Telegram          Discord           ntfy            Email
 ```
+
+Any application capable of sending an HTTP request can publish events to Noticoel — Forgejo is just one example.
 
 ---
 
 # Request Flow
 
-1. Forgejo sends an HTTP request.
+1. An application sends an HTTP request describing an event (Forgejo, Yoostart, a monitoring system, a cron job...).
 2. Noticoel validates the request.
 3. The request is converted into an Event.
 4. The Dispatcher forwards the Event to every enabled notifier.
@@ -155,6 +158,7 @@ A notifier is responsible for delivering an Event to an external service.
 
 Examples:
 
+- Telegram
 - Discord
 - ntfy
 - Email
@@ -286,16 +290,20 @@ server:
   port: 8080
 
 database:
-  driver: sqlite
   path: ./data/noticoel.db
 
-notifications:
+notifiers:
 
-  discord:
+  telegram:
     enabled: true
-    webhook: https://discord...
 
   ntfy:
+    enabled: false
+
+  webhook:
+    enabled: false
+
+  discord:
     enabled: false
 
   email:
@@ -308,7 +316,7 @@ Secrets are not part of the YAML file: the bearer auth token and the Telegram cr
 
 # Deployment
 
-Noticoel ships as a single, self-contained binary. No container runtime is required.
+Noticoel ships as a single, self-contained binary, and every release also publishes a matching OCI image (built with [Ko](https://ko.build), no Dockerfile maintained) for container-based deployments.
 
 Run it from source:
 
@@ -327,9 +335,9 @@ go -C app build -o noticoel ./cmd
 
 For local development, [Air](https://github.com/air-verse/air) (configured in `.air.toml`) rebuilds and restarts Noticoel automatically whenever a `.go`, `.yaml` or `.sql` file changes. It is a developer-only convenience and plays no part in the release build.
 
-GoReleaser produces prebuilt binaries and archives for Linux, macOS and Windows on every release — see the [Releases](https://github.com/mzeahmed/noticoel/releases) page.
+GoReleaser produces prebuilt binaries, archives and the OCI image for Linux, macOS and Windows on every release — see the [Releases](https://github.com/mzeahmed/noticoel/releases) page.
 
-The first version is designed to run on the same server as Forgejo:
+A common deployment runs Noticoel alongside the applications that publish events to it, for example on the same server as Forgejo:
 
 ```
 Forgejo
@@ -340,28 +348,25 @@ localhost
  Noticoel
       │
       ▼
- Discord
+ Telegram
 ```
 
-No public endpoint is required.
-
-A Docker image is not provided today but may be introduced later as an optional, additional way to deploy Noticoel.
+No public endpoint is required in that scenario — but Noticoel works just as well as a shared, reachable endpoint for several applications at once.
 
 ---
 
 # Future Evolution
 
-The current architecture intentionally focuses on notification delivery.
+Noticoel already accepts events from any HTTP-capable application and routes them to multiple channels. The current architecture intentionally focuses on getting that core loop right.
 
-As the project grows, Noticoel may evolve into a more generic event routing platform by introducing features such as:
+As the project grows, Noticoel will build on this foundation by introducing:
 
-- routing rules
-- multiple event sources
-- dashboards
-- plugins
-- optional containerized deployment (Docker)
+- routing rules and filters
+- event and delivery history
+- a lightweight dashboard
+- a plugin system for new connectors
 
-These features will build on the existing architecture without changing its core philosophy.
+These features build on the existing architecture without changing its core philosophy.
 
 ---
 

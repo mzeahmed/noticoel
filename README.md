@@ -4,9 +4,9 @@
 
 <br>
 
-**A lightweight notification service for self-hosted infrastructures.**
+**A lightweight event hub for self-hosted infrastructures.**
 
-Receive events. Notify anywhere.
+Applications publish events. Noticoel decides what happens next.
 
 <br>
 
@@ -21,13 +21,11 @@ Receive events. Notify anywhere.
 
 # Overview
 
-Noticoel is a lightweight notification service designed for self-hosted environments.
+Noticoel is a lightweight event hub designed for self-hosted environments.
 
-It receives events over HTTP and dispatches notifications to one or more channels.
+Applications and infrastructure services publish events to Noticoel over a single HTTP endpoint. Noticoel normalizes them and routes notifications to one or more destinations — Telegram, Discord, email, and more.
 
-The first version focuses on a simple use case:
-
-> Receive Forgejo workflow events and send notifications.
+> Forgejo workflow events are one example. Noticoel is not tied to any single event source.
 
 The architecture is intentionally small, making it easy to deploy, understand and extend.
 
@@ -35,36 +33,39 @@ The architecture is intentionally small, making it easy to deploy, understand an
 
 # Why Noticoel?
 
-CI/CD pipelines continuously generate valuable events:
+Self-hosted infrastructures generate valuable events all the time:
 
-- Build succeeded
-- Build failed
-- Release created
 - Deployment completed
+- Workflow failed
+- New subscription
+- Payment failed
+- Security alert
+- Monitoring alert
 
-Most self-hosted platforms provide webhooks, but turning those events into useful notifications often requires custom scripts.
+Without a central hub, every application ends up coupled to whichever notification service it was wired to first — one app talks to Telegram, another to Discord, a third sends its own emails. Switching channels means touching every application again.
 
-Noticoel removes that complexity by providing a single notification endpoint.
+Noticoel removes that coupling. Applications publish events and know nothing about Telegram, Discord or Email — Noticoel owns that decision, in one place.
 
 ---
 
 # Architecture
 
 ```text
-        Forgejo
-           │
-           ▼
-     HTTP REST API
-           │
-           ▼
-      Dispatcher
-           │
-     ┌─────┴─────┐
-     ▼           ▼
- Discord       ntfy
-               ▼
-             Email
+    Forgejo   Yoostart   BookingApp   Monitoring   Cron Jobs
+        │        │           │            │            │
+        └────────┴─────┬─────┴────────────┴────────────┘
+                        ▼
+                 HTTP REST API
+                        │
+                        ▼
+                  Event Router
+                        │
+          ┌─────────────┼─────────────┐
+          ▼              ▼             ▼
+      Telegram        Discord        Email
 ```
+
+Any application capable of sending an HTTP request can publish events to Noticoel.
 
 ---
 
@@ -72,14 +73,21 @@ Noticoel removes that complexity by providing a single notification endpoint.
 
 Current features:
 
-- REST API
-- JSON events
+- HTTP event ingestion
+- JSON event schema
 - Multiple notification channels
 - YAML configuration
-- SQLite storage
+- SQLite persistence
 - Structured logging
 - Single binary, no dependencies
 - Self-hosted
+
+Planned:
+
+- Rule-based routing
+- Event history
+- Dashboard
+- Additional connectors
 
 ---
 
@@ -239,7 +247,9 @@ Set both as environment variables — see [Configuration](#configuration) for ho
 
 ---
 
-# Example
+# Examples
+
+A CI/CD platform reporting a deployment:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/events \
@@ -252,6 +262,22 @@ curl -X POST http://localhost:8080/api/v1/events \
     "message":"BookingApp deployed successfully"
   }'
 ```
+
+A business application reporting a domain event:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source":"yoostart",
+    "type":"subscription.created",
+    "status":"info",
+    "title":"New Premium subscription",
+    "message":"A new Premium subscription has been purchased."
+  }'
+```
+
+Neither application knows Noticoel notifies over Telegram — that decision lives entirely in Noticoel's configuration.
 
 ---
 

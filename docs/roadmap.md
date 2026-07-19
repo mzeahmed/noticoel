@@ -3,7 +3,7 @@
 > This roadmap reflects the planned evolution of Noticoel.
 >
 > Noticoel is a lightweight, self-hosted Go application distributed as a single binary.
-> It starts as a notification service for self-hosted infrastructures and will gradually evolve into a generic event routing platform.
+> It is an event hub: applications publish events, and Noticoel routes notifications to one or more channels. It will gradually evolve into a generic event routing platform.
 
 ---
 
@@ -47,19 +47,19 @@ Deliver the first production-ready notification service.
 
 ## Core
 
-- [ ] Event model
-- [ ] Event validation
-- [ ] Notifier interface
-- [ ] Dispatcher
+- [x] Event model
+- [x] Event validation
+- [x] Notifier interface
+- [x] Dispatcher
 
 ## Persistence
 
-- [ ] Store events
+- [x] Store events
 - [ ] Store deliveries
 
 ## Notifiers
 
-- [ ] Telegram
+- [x] Telegram
 - [ ] Discord
 - [ ] ntfy
 - [ ] Email
@@ -68,7 +68,7 @@ Deliver the first production-ready notification service.
 ## Integrations
 
 - [ ] Forgejo webhook
-- [ ] Manual event endpoint
+- [x] Manual event endpoint
 
 ---
 
@@ -76,11 +76,11 @@ Deliver the first production-ready notification service.
 
 Improve reliability and operational readiness.
 
-- [ ] Authentication
+- [x] Authentication
 - [ ] Retry strategy
 - [ ] Delivery status
 - [ ] Metrics
-- [ ] Health checks
+- [x] Health checks
 - [ ] Graceful shutdown
 - [ ] Structured logging improvements
 
@@ -131,6 +131,6 @@ Expand Noticoel into a generic event platform.
 
 # Long-Term Vision
 
-Noticoel begins as a lightweight notification service focused on Forgejo and distributed as a single self-hosted binary.
+Noticoel is a lightweight event hub, distributed as a single self-hosted binary. Applications publish events over HTTP; Noticoel decides what happens next.
 
 Over time, it will evolve into a generic event routing platform capable of receiving events from multiple systems, applying routing rules, storing delivery history, and delivering notifications through a wide range of channels while remaining lightweight, dependency-free, and easy to deploy.

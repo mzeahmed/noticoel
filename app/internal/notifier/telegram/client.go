@@ -34,10 +34,7 @@ func (n *Notifier) Name() string {
 	return "telegram"
 }
 
-func (n *Notifier) Notify(
-	ctx context.Context,
-	msg notifier.Message,
-) notifier.Result {
+func (n *Notifier) Notify(ctx context.Context, msg notifier.Message) notifier.Result {
 
 	body := sendMessageRequest{
 		ChatID: n.config.ChatID,
