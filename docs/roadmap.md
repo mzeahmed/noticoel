@@ -65,10 +65,13 @@ Deliver the first production-ready notification service.
 - [ ] Email
 - [ ] Webhook
 
-## Integrations
+## Adapters
 
-- [ ] Forgejo webhook
-- [x] Manual event endpoint
+- [x] Forgejo webhook
+- [x] GitHub webhook
+- [x] GitLab webhook
+- [x] Gitea webhook
+- [x] Manual event endpoint (native Event producers — no adapter needed)
 
 ---
 
@@ -115,9 +118,9 @@ Expand Noticoel into a generic event platform.
 
 ## Connectors
 
-- [ ] GitHub
-- [ ] GitLab
-- [ ] Gitea
+- [x] GitHub
+- [x] GitLab
+- [x] Gitea
 - [ ] Jenkins
 - [ ] Generic Webhooks
 

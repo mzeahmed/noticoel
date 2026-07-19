@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Adapters for third-party webhooks — Forgejo, GitHub, GitLab, Gitea — each converting its native payload into the internal Event model behind its own `POST /api/v1/adapters/{name}` route, then flowing through the same validation, persistence and dispatch as the generic Event API
+- Infrastructure configuration (server, database, which notifiers are enabled, their credentials) can now be set entirely through `NOTICOEL_*` environment variables — a Docker deployment no longer needs to mount a config file, just an `environment:` block
+
+### Changed
+
+- `config/config.yaml` is now optional and reserved for future business configuration; an existing pre-2.0 file (with `server:`, `database:`, `notifiers:` sections) still works as a fallback for any environment variable left unset
+
 ## [0.1.3] - 2026-07-19
 
 ### Added

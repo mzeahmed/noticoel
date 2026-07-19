@@ -51,21 +51,27 @@ Noticoel removes that coupling. Applications publish events and know nothing abo
 # Architecture
 
 ```text
-    Forgejo   Yoostart   BookingApp   Monitoring   Cron Jobs
-        │        │           │            │            │
-        └────────┴─────┬─────┴────────────┴────────────┘
-                        ▼
-                 HTTP REST API
-                        │
-                        ▼
-                  Event Router
-                        │
-          ┌─────────────┼─────────────┐
-          ▼              ▼             ▼
-      Telegram        Discord        Email
+  Native Event producers          Third-party systems
+  (Yoostart, BookingApp,          (Forgejo, GitHub, GitLab, Gitea,
+   internal apps, custom APIs)     monitoring systems...)
+             │                              │
+             │                              ▼
+             │                          an adapter
+             │                     (native payload → Event)
+             │                              │
+             └──────────────┬───────────────┘
+                             ▼
+                      HTTP REST API
+                             │
+                             ▼
+                       Event Router
+                             │
+             ┌───────────────┼───────────────┐
+             ▼                ▼               ▼
+         Telegram          Discord           Email
 ```
 
-Any application capable of sending an HTTP request can publish events to Noticoel.
+An application that already speaks Noticoel's Event model publishes straight to the API — no adapter needed. A third-party system with its own webhook format goes through a dedicated adapter first, which converts its native payload into an Event before it reaches the same pipeline.
 
 ---
 
@@ -75,6 +81,7 @@ Current features:
 
 - HTTP event ingestion
 - JSON event schema
+- Adapters for third-party webhooks (Forgejo, GitHub, GitLab, Gitea)
 - Multiple notification channels
 - YAML configuration
 - SQLite persistence
@@ -121,21 +128,54 @@ See [Configuration](#configuration) for how to run it with your own secrets and 
 
 # Configuration
 
-The same binary and the same `config/config.yaml` work for every installation. What differs between installations is the environment they run in.
+Noticoel follows the [Twelve-Factor App](https://12factor.net/config) convention: infrastructure configuration — server, database, which notifiers are enabled, their credentials — comes entirely from environment variables. A Docker deployment needs nothing but a docker-compose.yml with an `environment:` block; there is no config file to template or mount.
 
 ```text
-config.yaml
-    ↓
-application configuration (server, database, which notifiers are enabled...)
-
 environment variables
     ↓
-secret values (tokens, chat IDs...)
+server, database, notifiers, secrets — everything infrastructure-related
+
+config/config.yaml (optional)
+    ↓
+future business configuration (routing rules, templates...) — unused today
 ```
 
-`config/config.yaml` describes *how* Noticoel behaves and is meant to be committed/shared. Secrets never go in it — Noticoel reads them from environment variables at startup instead, so nothing sensitive needs to be baked into the binary, the image, or a config file.
+Noticoel validates its required secrets at startup and refuses to start if one is missing. `NOTICOEL_AUTH_TOKEN` is always required; the Telegram variables are required only while `NOTICOEL_TELEGRAM_ENABLED` is `true` (the default).
 
-Noticoel validates its required secrets at startup and refuses to start if one is missing. `NOTICOEL_AUTH_TOKEN` is always required; the Telegram variables are required only when `notifiers.telegram.enabled` is `true` in `config.yaml`.
+## Environment variables
+
+### Required
+
+| Variable | Description |
+|---|---|
+| `NOTICOEL_AUTH_TOKEN` | Bearer token required to call the API |
+| `NOTICOEL_TELEGRAM_BOT_TOKEN` | Telegram Bot API token — required while Telegram is enabled (see [Notifiers → Telegram](#telegram)) |
+| `NOTICOEL_TELEGRAM_CHAT_ID` | Telegram chat or group ID to notify — required while Telegram is enabled |
+
+### Optional
+
+| Variable | Default | Description |
+|---|---|---|
+| `NOTICOEL_DEBUG` | `false` | Human-readable logs at DEBUG level instead of JSON at INFO |
+| `NOTICOEL_SERVER_HOST` | `0.0.0.0` | HTTP server bind address |
+| `NOTICOEL_SERVER_PORT` | `8080` | HTTP server port |
+| `NOTICOEL_DATABASE_PATH` | `./data/noticoel.db` | SQLite database file path |
+| `NOTICOEL_TELEGRAM_ENABLED` | `true` | Enable the Telegram notifier |
+| `NOTICOEL_NTFY_ENABLED` | `false` | Enable the ntfy notifier |
+| `NOTICOEL_NTFY_SERVER` | `https://ntfy.sh` | ntfy server URL |
+| `NOTICOEL_NTFY_TOPIC` | *(empty)* | ntfy topic |
+| `NOTICOEL_WEBHOOK_ENABLED` | `false` | Enable the generic webhook notifier |
+| `NOTICOEL_WEBHOOK_URL` | *(empty)* | Webhook URL to call |
+| `NOTICOEL_DISCORD_ENABLED` | `false` | Enable the Discord notifier |
+| `NOTICOEL_DISCORD_WEBHOOK` | *(empty)* | Discord webhook URL |
+| `NOTICOEL_EMAIL_ENABLED` | `false` | Enable the email (SMTP) notifier |
+| `NOTICOEL_EMAIL_HOST` | *(empty)* | SMTP host |
+| `NOTICOEL_EMAIL_PORT` | `587` | SMTP port |
+| `NOTICOEL_EMAIL_USERNAME` | *(empty)* | SMTP username |
+| `NOTICOEL_EMAIL_PASSWORD` | *(empty)* | SMTP password |
+| `NOTICOEL_EMAIL_FROM` | *(empty)* | "From" address for outgoing emails |
+
+> ntfy, generic webhook, Discord and email aren't implemented as notifiers yet (see [Roadmap](docs/roadmap.md)) — their configuration is already wired up so enabling them will be a config-only change once they land.
 
 ## Deployment scenarios
 
@@ -165,14 +205,15 @@ services:
       NOTICOEL_TELEGRAM_CHAT_ID: ${NOTICOEL_TELEGRAM_CHAT_ID}
 
     volumes:
-      - ./config:/app/config
       - ./data:/app/data
 
     ports:
       - "8080:8080"
 ```
 
-Docker Compose automatically injects those values into the container's environment (resolved from your shell or a `.env` file next to `docker-compose.yml`). Noticoel itself has no notion of Docker or `.env` files — it only ever reads real environment variables.
+No config file to mount — the `environment:` block is the entire configuration. Docker Compose injects those values into the container's environment (resolved from your shell or a `.env` file next to `docker-compose.yml`). Noticoel itself has no notion of Docker or `.env` files — it only ever reads real environment variables.
+
+Only add a `- ./config:/app/config` volume if you're also using the optional `config.yaml` below.
 
 ## Local secrets (.env)
 
@@ -188,15 +229,15 @@ Fill in your own values, keeping in mind that:
 - Every developer keeps their own `.env` with their own values.
 - In production there is no `.env` file — set real environment variables instead.
 
-## Secrets
+## Optional config.yaml
 
-| Variable | Description |
-|---|---|
-| `NOTICOEL_AUTH_TOKEN` | Bearer token required to call the events API |
-| `NOTICOEL_TELEGRAM_BOT_TOKEN` | Telegram Bot API token (see [Notifiers → Telegram](#telegram)) |
-| `NOTICOEL_TELEGRAM_CHAT_ID` | Telegram chat or group ID to notify |
+`config/config.yaml` is reserved for future business configuration — routing rules, notification templates, and the like — that doesn't map cleanly onto environment variables. None of that exists yet, so most deployments don't need this file at all.
 
-More variables will be added here as new notifiers are implemented (see [Roadmap](docs/roadmap.md)).
+```bash
+cp app/config/config.yaml.example app/config/config.yaml
+```
+
+If you're upgrading from an older Noticoel and still have a `config.yaml` with `server:`, `database:` or `notifiers:` sections, it keeps working: those values are used as a fallback for whichever environment variables you haven't set yet, so upgrading in place won't break your deployment. New deployments should just use environment variables.
 
 ---
 
@@ -243,31 +284,53 @@ Find `"chat":{"id": ...}` in the JSON response — that number is your `NOTICOEL
 
 ### 3. Configure Noticoel
 
-Set both as environment variables — see [Configuration](#configuration) for how, depending on your deployment. `notifiers.telegram.enabled` in `config/config.yaml` must also be `true` (the default).
+Set both as environment variables — see [Configuration](#configuration) for how, depending on your deployment. `NOTICOEL_TELEGRAM_ENABLED` must also be `true` (the default).
+
+---
+
+# Adapters
+
+A web application, SaaS platform or any other system that already speaks Noticoel's Event model doesn't need an adapter — it publishes straight to `POST /api/v1/events` (see [Examples](#examples)).
+
+Third-party systems with their own webhook format go through a dedicated adapter instead, which converts their native payload into an Event:
+
+| Adapter | Route | Native webhook |
+|---|---|---|
+| Forgejo | `POST /api/v1/adapters/forgejo` | release |
+| GitHub | `POST /api/v1/adapters/github` | Actions `workflow_run` |
+| GitLab | `POST /api/v1/adapters/gitlab` | pipeline |
+| Gitea | `POST /api/v1/adapters/gitea` | push |
+
+Point the corresponding webhook setting at `https://<your-noticoel-host>/api/v1/adapters/<name>`. These routes require the same bearer token as the Event API — whether you can supply it depends on what your provider's webhook UI allows (a custom header, a secret field...); check its docs.
+
+See [Architecture → Adapters](docs/architecture.md#adapters) for how they're implemented.
 
 ---
 
 # Examples
 
-A CI/CD platform reporting a deployment:
+Forgejo publishing its native release webhook, through the Forgejo adapter:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/events \
+curl -X POST http://localhost:8080/api/v1/adapters/forgejo \
+  -H "Authorization: Bearer $NOTICOEL_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "source":"forgejo",
-    "category":"ci",
-    "type":"workflow.succeeded",
-    "severity":"info",
-    "title":"Deployment completed",
-    "message":"BookingApp deployed successfully"
+    "action": "published",
+    "release": {
+      "tag_name": "v1.4.0",
+      "html_url": "https://git.example.com/example/example-app/releases/tag/v1.4.0",
+      "author": { "login": "Ahmed" }
+    },
+    "repository": { "full_name": "example/example-app" }
   }'
 ```
 
-A business application reporting a domain event:
+A business application, as a native Event producer, reporting a domain event directly:
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/events \
+  -H "Authorization: Bearer $NOTICOEL_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "source":"yoostart",

@@ -3,12 +3,15 @@
 # Local secrets (see .env.example)
 .env
 
+# Optional business config (see app/config/config.yaml.example)
+/app/config/config.yaml
+
 # Added by goreleaser init:
 dist/
 
 /bin/
 
-# SQLite data (see app/config/config.yaml database.path)
+# SQLite data (see NOTICOEL_DATABASE_PATH, ./data/noticoel.db by default)
 /app/data/*.db
 
 # Air (hot reload) build output

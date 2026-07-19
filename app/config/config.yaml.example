@@ -1,0 +1,16 @@
+# This file is optional and, today, unused: Noticoel's infrastructure
+# configuration (server, database, which notifiers are enabled, and their
+# credentials) is read entirely from NOTICOEL_* environment variables —
+# see the README's Configuration section.
+#
+# config/config.yaml is reserved for future business configuration that
+# doesn't map cleanly onto environment variables (routing rules,
+# notification templates...). None of that exists yet, so there is
+# nothing to put here today.
+#
+# If you're upgrading from a pre-2.0 Noticoel and still have a
+# config.yaml with `server:`, `database:` or `notifiers:` sections, it
+# keeps working as a fallback for whichever environment variables you
+# haven't set yet — but new deployments don't need this file at all.
+#
+# To use this file, copy it to config.yaml (gitignored, like .env).
