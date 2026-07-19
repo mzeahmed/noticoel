@@ -8,10 +8,12 @@ on:
     tags:
       - "v*"
 
-# contents: write is what lets GoReleaser create the GitHub Release and
-# upload the built binaries to it. Nothing else is needed.
+# contents: write lets GoReleaser create the GitHub Release and upload the
+# built binaries to it. packages: write lets it push the OCI image built by
+# ko (see the `kos` section in .goreleaser.yaml) to ghcr.io.
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
