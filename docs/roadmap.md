@@ -2,7 +2,8 @@
 
 > This roadmap reflects the planned evolution of Noticoel.
 >
-> Noticoel is a lightweight, self-hosted Go application distributed as a single binary. It starts as a notification service for self-hosted infrastructures and will gradually evolve into a generic event routing platform.
+> Noticoel is a lightweight, self-hosted Go application distributed as a single binary.
+> It starts as a notification service for self-hosted infrastructures and will gradually evolve into a generic event routing platform.
 
 ---
 
@@ -17,7 +18,7 @@
 
 # Phase 1 — Foundation
 
-Build a solid foundation for the project.
+Build a solid foundation.
 
 ## Repository
 
@@ -26,10 +27,8 @@ Build a solid foundation for the project.
 - [x] Logo
 - [x] Go module
 - [x] Makefile
-- [x] GoReleaser
 - [x] GitHub Actions
-
----
+- [x] GoReleaser
 
 ## Core
 
@@ -42,49 +41,69 @@ Build a solid foundation for the project.
 
 ---
 
-# Phase 2 — Notification Service
+# Phase 2 — Notification Engine
 
-Deliver the first usable version.
+Deliver the first production-ready notification service.
+
+## Core
 
 - [ ] Event model
+- [ ] Event validation
+- [ ] Notifier interface
 - [ ] Dispatcher
+
+## Persistence
+
+- [ ] Store events
+- [ ] Store deliveries
+
+## Notifiers
+
 - [ ] Telegram
 - [ ] Discord
 - [ ] ntfy
 - [ ] Email
 - [ ] Webhook
-- [ ] Forgejo integration
+
+## Integrations
+
+- [ ] Forgejo webhook
+- [ ] Manual event endpoint
 
 ---
 
 # Phase 3 — Production Ready
 
-Improve stability and production readiness.
+Improve reliability and operational readiness.
 
 - [ ] Authentication
-- [ ] Retry
+- [ ] Retry strategy
+- [ ] Delivery status
 - [ ] Metrics
+- [ ] Health checks
 - [ ] Graceful shutdown
-- [ ] Logging improvements
+- [ ] Structured logging improvements
 
 ---
 
 # Phase 4 — Event Routing
 
-Introduce routing capabilities.
+Transform Noticoel into an event router.
 
-- [ ] Rules
+- [ ] Routing rules
 - [ ] Filters
 - [ ] Multiple destinations
 - [ ] Templates
+- [ ] Event transformations
 
 ---
 
 # Phase 5 — Dashboard
 
-Provide a web interface.
+Provide a lightweight web interface.
 
 - [ ] Notification history
+- [ ] Delivery history
 - [ ] Statistics
 - [ ] Configuration UI
 
@@ -92,16 +111,26 @@ Provide a web interface.
 
 # Phase 6 — Event Platform
 
-Expand Noticoel into a broader event platform.
+Expand Noticoel into a generic event platform.
 
-- [ ] Additional connectors
-- [ ] Plugins
-- [ ] Public SDK
+## Connectors
+
+- [ ] GitHub
+- [ ] GitLab
+- [ ] Gitea
+- [ ] Jenkins
+- [ ] Generic Webhooks
+
+## Extensibility
+
+- [ ] Plugin system
+- [ ] Public Go SDK
+- [ ] REST API improvements
 
 ---
 
 # Long-Term Vision
 
-Noticoel begins as a lightweight notification service focused on Forgejo, distributed as a single self-hosted binary.
+Noticoel begins as a lightweight notification service focused on Forgejo and distributed as a single self-hosted binary.
 
-Over time, it will evolve into a generic event routing platform capable of receiving events from multiple systems, applying routing rules, and delivering notifications through a wide range of channels while remaining simple, lightweight and easy to run — no container required.
+Over time, it will evolve into a generic event routing platform capable of receiving events from multiple systems, applying routing rules, storing delivery history, and delivering notifications through a wide range of channels while remaining lightweight, dependency-free, and easy to deploy.
