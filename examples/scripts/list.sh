@@ -15,19 +15,10 @@ fi
 NOTICOEL_URL="${NOTICOEL_URL:-http://localhost:8080}"
 NOTICOEL_TOKEN="${NOTICOEL_TOKEN:-${AUTH_TOKEN:-change-me}}"
 
-EVENT_FILE="${1:-../events/workflow-success.json}"
+LIMIT="${1:-20}"
+OFFSET="${2:-0}"
 
-if [ ! -f "$EVENT_FILE" ]; then
-    echo "Event file not found: $EVENT_FILE"
-    echo ""
-    echo "Usage:"
-    echo "  ./send.sh ../events/workflow-success.json"
-    echo "  ./send.sh ../events/workflow-failure.json"
-    echo "  ./send.sh ../events/release.json"
-    exit 1
-fi
-
-echo "Sending event: $EVENT_FILE"
+echo "Listing events (limit=${LIMIT}, offset=${OFFSET})"
 
 PRETTY=(cat)
 command -v jq >/dev/null 2>&1 && PRETTY=(jq .)
@@ -36,11 +27,7 @@ curl \
     --fail \
     --silent \
     --show-error \
-    --request POST \
-    --url "${NOTICOEL_URL}/api/v1/events" \
+    --request GET \
+    --url "${NOTICOEL_URL}/api/v1/events?limit=${LIMIT}&offset=${OFFSET}" \
     --header "Authorization: Bearer ${NOTICOEL_TOKEN}" \
-    --header "Content-Type: application/json" \
-    --data "@${EVENT_FILE}" \
     | "${PRETTY[@]}"
-
-echo "✓ Event sent successfully"

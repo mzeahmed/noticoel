@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error)
+	GetEvents(ctx context.Context, arg GetEventsParams) ([]Event, error)
 }
 
 var _ Querier = (*Queries)(nil)

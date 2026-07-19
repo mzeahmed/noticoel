@@ -12,8 +12,7 @@ import (
 
 const createEvent = `-- name: CreateEvent :one
 INSERT INTO events (source, type, status, title, message, data)
-VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, source, type, status, title, message, data, created_at
+VALUES (?, ?, ?, ?, ?, ?) RETURNING id, SOURCE, TYPE, status, title, message, DATA, created_at
 `
 
 type CreateEventParams struct {
@@ -46,4 +45,48 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getEvents = `-- name: GetEvents :many
+SELECT id, source, type, status, title, message, data, created_at
+FROM events
+ORDER BY id DESC
+LIMIT ? OFFSET ?
+`
+
+type GetEventsParams struct {
+	Limit  int64 `json:"limit"`
+	Offset int64 `json:"offset"`
+}
+
+func (q *Queries) GetEvents(ctx context.Context, arg GetEventsParams) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, getEvents, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Source,
+			&i.Type,
+			&i.Status,
+			&i.Title,
+			&i.Message,
+			&i.Data,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

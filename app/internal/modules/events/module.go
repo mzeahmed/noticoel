@@ -30,4 +30,5 @@ func New(db *sql.DB, log *slog.Logger) *Module {
 // caller (see router.New) is expected to pass auth.Authenticate(token).
 func (m *Module) RegisterRoutes(mux *http.ServeMux, authenticate func(http.Handler) http.Handler) {
 	mux.Handle("POST /api/v1/events", authenticate(http.HandlerFunc(m.handler.Create)))
+	mux.Handle("GET /api/v1/events", authenticate(http.HandlerFunc(m.handler.List)))
 }
