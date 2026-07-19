@@ -5,11 +5,11 @@
   "title": "Workflow failed",
   "message": "The workflow failed during execution.",
   "data": {
-    "repository": "yoostart/wp-yoostart",
+    "repository": "example/example-app",
     "branch": "develop",
     "workflow": "CI",
     "commit": "f8b6d7e",
     "author": "Ahmed",
-    "url": "https://git.yoostart.com/yoostart/wp-yoostart/actions/runs/42"
+    "url": "https://git.example.com/example/example-app/actions/runs/42"
   }
 }

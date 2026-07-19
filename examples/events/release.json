@@ -5,9 +5,9 @@
   "title": "New release published",
   "message": "Version v1.4.0 has been published.",
   "data": {
-    "repository": "yoostart/wp-yoostart",
+    "repository": "example/example-app",
     "tag": "v1.4.0",
     "author": "Ahmed",
-    "url": "https://git.yoostart.com/yoostart/wp-yoostart/releases/tag/v1.4.0"
+    "url": "https://git.example.com/example/example-app/releases/tag/v1.4.0"
   }
 }
