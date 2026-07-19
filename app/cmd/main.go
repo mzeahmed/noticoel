@@ -9,7 +9,9 @@ import (
 	"github.com/mzeahmed/coelakit/server"
 	"github.com/mzeahmed/noticoel/internal/config"
 	"github.com/mzeahmed/noticoel/internal/database"
+	"github.com/mzeahmed/noticoel/internal/dispatcher"
 	"github.com/mzeahmed/noticoel/internal/logger"
+	"github.com/mzeahmed/noticoel/internal/notifier/telegram"
 	"github.com/mzeahmed/noticoel/internal/router"
 	"github.com/mzeahmed/noticoel/internal/version"
 )
@@ -32,6 +34,16 @@ func runConfig() error {
 
 	log := logger.New(cfg.Debug)
 
+	disp := dispatcher.New()
+
+	if cfg.Notifiers.Telegram.Enabled {
+		disp.Register(telegram.New(telegram.Config{
+			Enabled:  cfg.Notifiers.Telegram.Enabled,
+			BotToken: cfg.Notifiers.Telegram.BotToken,
+			ChatID:   cfg.Notifiers.Telegram.ChatID,
+		}))
+	}
+
 	db, err := database.Open(cfg.Database.Path)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
@@ -42,7 +54,7 @@ func runConfig() error {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
-	handler := router.New(db, version.Version, cfg.Auth.Token, log)
+	handler := router.New(db, disp, version.Version, cfg.Auth.Token, log)
 	handler = middleware.LoggingWith(log)(middleware.RecoveryWith(log)(handler))
 
 	log.Info("starting noticoel",

@@ -1,10 +1,12 @@
 // Package events receives notification events over HTTP.
-package events
+package event
 
 import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+
+	"github.com/mzeahmed/noticoel/internal/dispatcher"
 )
 
 // Module wires together the events module's dependencies and exposes its
@@ -14,9 +16,10 @@ type Module struct {
 }
 
 // New builds an events Module with its service and handler dependencies
-// initialized.
-func New(db *sql.DB, log *slog.Logger) *Module {
-	service := NewService(db)
+// initialized. Events created through this module are dispatched to disp's
+// registered notifiers.
+func New(db *sql.DB, disp *dispatcher.Dispatcher, log *slog.Logger) *Module {
+	service := NewService(db, disp, log)
 	handler := NewHandler(service, log)
 
 	return &Module{

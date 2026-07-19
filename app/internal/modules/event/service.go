@@ -1,27 +1,36 @@
-package events
+package event
 
 import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 
 	"github.com/mzeahmed/noticoel/internal/database/sqlc"
+	"github.com/mzeahmed/noticoel/internal/dispatcher"
+	"github.com/mzeahmed/noticoel/internal/notifier"
 )
 
 // Service contains the business logic of the events module. It consumes
 // the sqlc-generated Queries directly, with no repository layer in
 // between.
 type Service struct {
-	queries *sqlc.Queries
+	queries    *sqlc.Queries
+	dispatcher *dispatcher.Dispatcher
+	log        *slog.Logger
 }
 
-// NewService creates a new events service backed by db.
-func NewService(db *sql.DB) *Service {
-	return &Service{queries: sqlc.New(db)}
+// NewService creates a new events service backed by db. Every event
+// successfully persisted is dispatched to disp's registered notifiers.
+func NewService(db *sql.DB, disp *dispatcher.Dispatcher, log *slog.Logger) *Service {
+	return &Service{queries: sqlc.New(db), dispatcher: disp, log: log}
 }
 
-// Create persists e and returns it with its generated fields (ID,
-// CreatedAt) populated.
+// Create persists e, returns it with its generated fields (ID, CreatedAt)
+// populated, and dispatches it to the registered notifiers.
+//
+// Notifier failures are logged but do not fail the request: the event is
+// already durably stored, and delivery is best-effort.
 func (s *Service) Create(ctx context.Context, e Event) (Event, error) {
 	data, err := marshalData(e.Data)
 	if err != nil {
@@ -43,7 +52,29 @@ func (s *Service) Create(ctx context.Context, e Event) (Event, error) {
 	e.ID = row.ID
 	e.CreatedAt = row.CreatedAt
 
+	s.dispatch(ctx, e)
+
 	return e, nil
+}
+
+// dispatch sends e to every registered notifier and logs any failure.
+func (s *Service) dispatch(ctx context.Context, e Event) {
+	results := s.dispatcher.Dispatch(ctx, notifier.Message{
+		Status:  e.Status,
+		Title:   e.Title,
+		Message: e.Message,
+	})
+
+	for _, result := range results {
+		if !result.Success {
+			s.log.Error("notifier failed",
+				"notifier", result.Notifier,
+				"event_id", e.ID,
+				"message", result.Message,
+				"error", result.Error,
+			)
+		}
+	}
 }
 
 // List returns a page of events, most recently created first.
