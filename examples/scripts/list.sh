@@ -13,7 +13,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 NOTICOEL_URL="${NOTICOEL_URL:-http://localhost:8080}"
-NOTICOEL_TOKEN="${NOTICOEL_TOKEN:-${AUTH_TOKEN:-change-me}}"
+NOTICOEL_TOKEN="${NOTICOEL_TOKEN:-${NOTICOEL_AUTH_TOKEN:-change-me}}"
 
 LIMIT="${1:-20}"
 OFFSET="${2:-0}"

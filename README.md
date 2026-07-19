@@ -86,7 +86,7 @@ Current features:
 
 # Installation
 
-Noticoel is distributed in two ways, both shipping the exact same application. Pick whichever fits your infrastructure.
+Noticoel is distributed in two ways, both shipping the exact same generic application — no secrets baked into either one. Pick whichever fits your infrastructure, then head to [Configuration](#configuration) to give your installation its own secrets before running it.
 
 ## Option 1 — Standalone binary
 
@@ -94,29 +94,68 @@ Prebuilt binaries for Linux, macOS and Windows are published on the [Releases](h
 
 ```bash
 tar -xzf noticoel_Linux_x86_64.tar.gz
-./noticoel
 ```
+
+This extracts the `noticoel` binary. See [Configuration](#configuration) before running it.
 
 ## Option 2 — OCI image (Docker)
 
 Every release is also published as an OCI image, built automatically by GoReleaser using [Ko](https://ko.build) — no Dockerfile is maintained in this project.
 
 ```bash
-docker run \
-  --rm \
-  -p 8080:8080 \
-  -v $(pwd)/config:/app/config \
-  -v $(pwd)/data:/app/data \
-  ghcr.io/mzeahmed/noticoel:latest
+docker pull ghcr.io/mzeahmed/noticoel:latest
 ```
 
-Or with Docker Compose:
+> The OCI image contains the exact same Noticoel binary as the GitHub Release. Docker is one deployment option among others — not a project dependency.
+
+See [Configuration](#configuration) for how to run it with your own secrets and config.
+
+---
+
+# Configuration
+
+The same binary and the same `config/config.yaml` work for every installation. What differs between installations is the environment they run in.
+
+```text
+config.yaml
+    ↓
+application configuration (server, database, which notifiers are enabled...)
+
+environment variables
+    ↓
+secret values (tokens, chat IDs...)
+```
+
+`config/config.yaml` describes *how* Noticoel behaves and is meant to be committed/shared. Secrets never go in it — Noticoel reads them from environment variables at startup instead, so nothing sensitive needs to be baked into the binary, the image, or a config file.
+
+Noticoel validates its required secrets at startup and refuses to start if one is missing. `NOTICOEL_AUTH_TOKEN` is always required; the Telegram variables are required only when `notifiers.telegram.enabled` is `true` in `config.yaml`.
+
+## Deployment scenarios
+
+### Linux shell
+
+```bash
+export NOTICOEL_AUTH_TOKEN=xxxxxxxx
+export NOTICOEL_TELEGRAM_BOT_TOKEN=xxxxxxxx
+export NOTICOEL_TELEGRAM_CHAT_ID=-123456789
+
+./noticoel
+```
+
+Export the variables however fits your setup — your shell, a systemd `EnvironmentFile`, or your process supervisor of choice — as long as they reach the process as real environment variables.
+
+### Docker Compose
 
 ```yaml
 services:
   noticoel:
     image: ghcr.io/mzeahmed/noticoel:latest
     restart: unless-stopped
+
+    environment:
+      NOTICOEL_AUTH_TOKEN: ${NOTICOEL_AUTH_TOKEN}
+      NOTICOEL_TELEGRAM_BOT_TOKEN: ${NOTICOEL_TELEGRAM_BOT_TOKEN}
+      NOTICOEL_TELEGRAM_CHAT_ID: ${NOTICOEL_TELEGRAM_CHAT_ID}
 
     volumes:
       - ./config:/app/config
@@ -126,7 +165,31 @@ services:
       - "8080:8080"
 ```
 
-> The OCI image contains the exact same Noticoel binary as the GitHub Release. Configuration and the SQLite database should be stored on mounted volumes. Docker is one deployment option among others — not a project dependency.
+Docker Compose automatically injects those values into the container's environment (resolved from your shell or a `.env` file next to `docker-compose.yml`). Noticoel itself has no notion of Docker or `.env` files — it only ever reads real environment variables.
+
+## Local secrets (.env)
+
+`.env` is a **local development convenience only**. Noticoel never reads a `.env` file itself — only tooling (the Makefile, [Air](https://github.com/air-verse/air)) loads it and exports its contents into the process environment for you.
+
+```bash
+cp .env.example .env
+```
+
+Fill in your own values, keeping in mind that:
+
+- `.env` is listed in `.gitignore` and must never be committed.
+- Every developer keeps their own `.env` with their own values.
+- In production there is no `.env` file — set real environment variables instead.
+
+## Secrets
+
+| Variable | Description |
+|---|---|
+| `NOTICOEL_AUTH_TOKEN` | Bearer token required to call the events API |
+| `NOTICOEL_TELEGRAM_BOT_TOKEN` | Telegram Bot API token (see [Notifiers → Telegram](#telegram)) |
+| `NOTICOEL_TELEGRAM_CHAT_ID` | Telegram chat or group ID to notify |
+
+More variables will be added here as new notifiers are implemented (see [Roadmap](docs/roadmap.md)).
 
 ---
 
@@ -138,13 +201,7 @@ Local development uses [Air](https://github.com/air-verse/air) for hot reloading
 go install github.com/air-verse/air@latest
 ```
 
-Copy the environment template and set your own token:
-
-```bash
-cp .env.example .env
-```
-
-Run the application:
+Set up your local secrets first — see [Configuration → Local secrets (.env)](#local-secrets-env) — then run:
 
 ```bash
 air
@@ -158,13 +215,11 @@ Air automatically rebuilds and restarts Noticoel whenever a `.go`, `.yaml` or `.
 
 ## Telegram
 
-> The Telegram notifier is not wired up yet (see [Roadmap](docs/roadmap.md)), but the credentials below are already read from the environment, so you can set them up ahead of time.
-
 ### 1. Create a bot
 
 1. Open a chat with [@BotFather](https://t.me/BotFather) on Telegram.
 2. Send `/newbot` and follow the prompts to pick a name and a username.
-3. BotFather replies with a bot token, e.g. `123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`. This is your `TELEGRAM_BOT_TOKEN`.
+3. BotFather replies with a bot token, e.g. `123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`. This is your `NOTICOEL_TELEGRAM_BOT_TOKEN`.
 
 ### 2. Get the chat ID
 
@@ -177,18 +232,11 @@ Then open the following URL in a browser, replacing `<TOKEN>`:
 https://api.telegram.org/bot<TOKEN>/getUpdates
 ```
 
-Find `"chat":{"id": ...}` in the JSON response — that number is your `TELEGRAM_CHAT_ID` (group IDs are negative).
+Find `"chat":{"id": ...}` in the JSON response — that number is your `NOTICOEL_TELEGRAM_CHAT_ID` (group IDs are negative).
 
 ### 3. Configure Noticoel
 
-Set both values in your `.env` (local dev, see [Development](#development)) or as real environment variables in production:
-
-```bash
-TELEGRAM_BOT_TOKEN=123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TELEGRAM_CHAT_ID=-123456789
-```
-
-`notifiers.telegram.enabled` in `config/config.yaml` must also be `true` (the default).
+Set both as environment variables — see [Configuration](#configuration) for how, depending on your deployment. `notifiers.telegram.enabled` in `config/config.yaml` must also be `true` (the default).
 
 ---
 

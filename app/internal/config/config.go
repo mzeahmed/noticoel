@@ -32,8 +32,8 @@ func (s ServerConfig) Addr() string {
 // AuthConfig configures the API's bearer token authentication.
 type AuthConfig struct {
 	// Token authenticates incoming requests. It is read from the
-	// AUTH_TOKEN environment variable rather than the YAML file, so the
-	// secret never needs to be committed to version control.
+	// NOTICOEL_AUTH_TOKEN environment variable rather than the YAML file,
+	// so the secret never needs to be committed to version control.
 	Token string `yaml:"-"`
 }
 
@@ -49,9 +49,9 @@ type NotifiersConfig struct {
 }
 
 // TelegramConfig configures the Telegram notifier. BotToken and ChatID are
-// read from the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment
-// variables rather than the YAML file, so they never need to be committed
-// to version control.
+// read from the NOTICOEL_TELEGRAM_BOT_TOKEN and NOTICOEL_TELEGRAM_CHAT_ID
+// environment variables rather than the YAML file, so they never need to
+// be committed to version control.
 type TelegramConfig struct {
 	Enabled  bool   `yaml:"enabled"`
 	BotToken string `yaml:"-"`
@@ -70,17 +70,17 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("decode config: %w", err)
 	}
 
-	cfg.Auth.Token = os.Getenv("AUTH_TOKEN")
+	cfg.Auth.Token = os.Getenv("NOTICOEL_AUTH_TOKEN")
 	if cfg.Auth.Token == "" {
-		return nil, fmt.Errorf("AUTH_TOKEN environment variable is required")
+		return nil, fmt.Errorf("NOTICOEL_AUTH_TOKEN environment variable is required")
 	}
 
 	if cfg.Notifiers.Telegram.Enabled {
-		cfg.Notifiers.Telegram.BotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
-		cfg.Notifiers.Telegram.ChatID = os.Getenv("TELEGRAM_CHAT_ID")
+		cfg.Notifiers.Telegram.BotToken = os.Getenv("NOTICOEL_TELEGRAM_BOT_TOKEN")
+		cfg.Notifiers.Telegram.ChatID = os.Getenv("NOTICOEL_TELEGRAM_CHAT_ID")
 
 		if cfg.Notifiers.Telegram.BotToken == "" || cfg.Notifiers.Telegram.ChatID == "" {
-			return nil, fmt.Errorf("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment variables are required when notifiers.telegram.enabled is true")
+			return nil, fmt.Errorf("NOTICOEL_TELEGRAM_BOT_TOKEN and NOTICOEL_TELEGRAM_CHAT_ID environment variables are required when notifiers.telegram.enabled is true")
 		}
 	}
 

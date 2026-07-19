@@ -20,7 +20,7 @@ First release. Noticoel receives events over HTTP and dispatches notifications t
 - `GET /health` and `GET /version` endpoints
 - Structured logging (`log/slog`), request logging and panic recovery middleware
 - Graceful shutdown
-- YAML configuration, with secrets (`AUTH_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) read from environment variables / `.env`
+- YAML configuration, with secrets (`NOTICOEL_AUTH_TOKEN`, `NOTICOEL_TELEGRAM_BOT_TOKEN`, `NOTICOEL_TELEGRAM_CHAT_ID`) read from environment variables / `.env`
 - Example scripts (`send.sh`, `list.sh`) and sample event payloads
 - Single-binary distribution for Linux, macOS and Windows via GoReleaser, plus an OCI image
 

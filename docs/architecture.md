@@ -259,7 +259,7 @@ Schema lives in `internal/database/migrations` (Goose); queries live in `interna
 
 ## config
 
-Loads the application configuration from a YAML file using the Go standard library together with gopkg.in/yaml.v3. The bearer auth token is the one exception: it is read from the `AUTH_TOKEN` environment variable instead, so it never needs to be committed to the YAML file (see [Configuration](#configuration)).
+Loads the application configuration from a YAML file using the Go standard library together with gopkg.in/yaml.v3. Secrets are the one exception: the bearer auth token and the Telegram credentials are read from environment variables instead, so they never need to be committed to the YAML file (see [Configuration](#configuration)).
 
 ---
 
@@ -302,7 +302,7 @@ notifications:
     enabled: false
 ```
 
-The bearer auth token is not part of the YAML file. It is read from the `AUTH_TOKEN` environment variable, set via a `.env` file at the repository root for local development (copy `.env.example` to `.env`) or injected directly by the process manager/container runtime in production.
+Secrets are not part of the YAML file: the bearer auth token and the Telegram credentials are read from `NOTICOEL_AUTH_TOKEN`, `NOTICOEL_TELEGRAM_BOT_TOKEN` and `NOTICOEL_TELEGRAM_CHAT_ID`. Set them via a `.env` file at the repository root for local development (copy `.env.example` to `.env`), or inject them directly as real environment variables in production. See the README's [Configuration](../README.md#configuration) section for details.
 
 ---
 
