@@ -9,7 +9,8 @@ before:
     - go -C app mod tidy
 
 builds:
-  - dir: app
+  - id: noticoel
+    dir: app
     main: ./cmd
     binary: noticoel
     env:
@@ -61,12 +62,17 @@ release:
 # and can be deployed with Docker or any OCI-compatible runtime.
 kos:
   - id: noticoel
-
     build: noticoel
 
     repositories:
       - ghcr.io/mzeahmed/noticoel
 
+    bare: true
+
     tags:
       - "{{ .Version }}"
       - latest
+
+    platforms:
+      - linux/amd64
+      - linux/arm64
