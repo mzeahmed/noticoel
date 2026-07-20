@@ -23,6 +23,7 @@ export
         tidy update \
         migrate-up migrate-down migrate-status migrate-create sqlc \
         send list \
+        upstream-add sync-upstream sync-upstream-rebase push-fork \
         release-build release-snapshot release-check \
         doctor version clean
 
@@ -110,6 +111,32 @@ send: ## Send a sample event (EVENT=workflow-success|workflow-failure|release, d
 
 list: ## List stored events (LIMIT=20, OFFSET=0)
 	bash examples/scripts/list.sh $(or $(LIMIT),20) $(or $(OFFSET),0)
+
+# ==============================================================================
+# Fork
+# ==============================================================================
+
+# BRANCH accepts BRANCH=, branch= B= or b= (defaults to main)
+BRANCH := $(or $(BRANCH),$(branch),$(B),$(b),main)
+
+upstream-add: ## make upstream-add URL=git@github.com:owner/repo.git
+	@test -n "$(URL)" || (echo "Usage: make upstream-add URL=git@github.com:owner/repo.git" && exit 1)
+	git remote add upstream $(URL)
+	@echo "$(GREEN)✓ Upstream remote added$(RESET)"
+
+sync-upstream: ## make sync-upstream BRANCH=main (aliases: B, b — default: main)
+	git fetch upstream
+	git merge upstream/$(BRANCH)
+	@echo "$(GREEN)✓ Branch synced with upstream/$(BRANCH)$(RESET)"
+
+sync-upstream-rebase: ## make sync-upstream-rebase BRANCH=main (aliases: B, b — default: main)
+	git fetch upstream
+	git rebase upstream/$(BRANCH)
+	@echo "$(GREEN)✓ Branch rebased onto upstream/$(BRANCH)$(RESET)"
+
+push-fork: ## make push-fork BRANCH=main (aliases: B, b — default: main)
+	git push origin $(BRANCH)
+	@echo "$(GREEN)✓ Pushed to origin/$(BRANCH)$(RESET)"
 
 # ==============================================================================
 # Release
