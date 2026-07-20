@@ -28,6 +28,6 @@ curl \
     --silent \
     --show-error \
     --request GET \
-    --url "${NOTICOEL_URL}/api/v1/events?limit=${LIMIT}&offset=${OFFSET}" \
+    --url "${NOTICOEL_URL}/api/v1/events/list?limit=${LIMIT}&offset=${OFFSET}" \
     --header "Authorization: Bearer ${NOTICOEL_TOKEN}" \
     | "${PRETTY[@]}"

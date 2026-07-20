@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.4] - 2026-07-20
 
 ### Added
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** renamed the event API routes to `POST /api/v1/events/create` and `GET /api/v1/events/list`
 - `config/config.yaml` is now optional and reserved for future business configuration; an existing pre-2.0 file (with `server:`, `database:`, `notifiers:` sections) still works as a fallback for any environment variable left unset
 - Documented the Docker Compose gotchas that come from the image having no `WORKDIR` and running as a fixed non-root UID: `NOTICOEL_DATABASE_PATH` (and a mounted `config.yaml`) need an absolute path, and a bind-mounted data directory needs a one-shot `chown` before Noticoel starts
 

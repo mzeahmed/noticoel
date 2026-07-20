@@ -37,7 +37,7 @@ curl \
     --silent \
     --show-error \
     --request POST \
-    --url "${NOTICOEL_URL}/api/v1/events" \
+    --url "${NOTICOEL_URL}/api/v1/events/create" \
     --header "Authorization: Bearer ${NOTICOEL_TOKEN}" \
     --header "Content-Type: application/json" \
     --data "@${EVENT_FILE}" \

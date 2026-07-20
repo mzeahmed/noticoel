@@ -82,7 +82,7 @@ Noticoel is not tied to any single event source. The architecture allows new eve
          Telegram          Discord           ntfy            Email
 ```
 
-A **native Event producer** already speaks Noticoel's Event model, so it publishes straight to `POST /api/v1/events` — no adapter involved. A **third-party system** has its own proprietary webhook format, so it goes through a dedicated adapter first, which converts that payload into an Event before handing it to the same pipeline — see [Adapters](#adapters).
+A **native Event producer** already speaks Noticoel's Event model, so it publishes straight to `POST /api/v1/events/create` — no adapter involved. A **third-party system** has its own proprietary webhook format, so it goes through a dedicated adapter first, which converts that payload into an Event before handing it to the same pipeline — see [Adapters](#adapters).
 
 ---
 
@@ -106,8 +106,8 @@ The API exposes a minimal HTTP interface.
 Endpoints:
 
 ```
-POST /api/v1/events
-GET  /api/v1/events
+POST /api/v1/events/create
+GET  /api/v1/events/list
 ```
 
 Receive or list events, in Noticoel's internal Event shape.
@@ -162,7 +162,7 @@ Every notifier receives the same Event object.
 
 Noticoel has two kinds of clients.
 
-**Native Event producers** already speak Noticoel's Event model — web applications, SaaS platforms, internal business apps, custom services, anything you (or someone) built to call Noticoel directly. They publish straight to `POST /api/v1/events`. No adapter, because there is nothing to adapt: the payload already is an Event.
+**Native Event producers** already speak Noticoel's Event model — web applications, SaaS platforms, internal business apps, custom services, anything you (or someone) built to call Noticoel directly. They publish straight to `POST /api/v1/events/create`. No adapter, because there is nothing to adapt: the payload already is an Event.
 
 **Third-party systems** are external systems with a proprietary webhook format you don't control — Forgejo, GitHub, GitLab, Gitea, a monitoring tool. Each gets a dedicated adapter that converts its native payload into an Event.
 
@@ -279,7 +279,7 @@ Builds the application's top-level `http.Handler` on a standard library `http.Se
 Each module owns one feature end-to-end: its handler, its routes (via a `RegisterRoutes` method), and, where relevant, its own model and business logic.
 
 - **health** — `GET /health` and `GET /version`.
-- **event** — `POST /api/v1/events` and `GET /api/v1/events`; owns the `Event` model, its validation, and persists received events to SQLite via its `Service`. Its `Service` is also reused directly by every adapter, so an event's persistence and dispatch path is identical no matter where it came from.
+- **event** — `POST /api/v1/events/create` and `GET /api/v1/events/list`; owns the `Event` model, its validation, and persists received events to SQLite via its `Service`. Its `Service` is also reused directly by every adapter, so an event's persistence and dispatch path is identical no matter where it came from.
 - **auth** — the bearer token middleware guarding authenticated routes.
 
 ---

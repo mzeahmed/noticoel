@@ -26,7 +26,7 @@ func NewHandler(service *Service, log *slog.Logger) *Handler {
 	return &Handler{service: service, log: log}
 }
 
-// Create handles POST /api/v1/events.
+// Create handles POST /api/v1/events/create.
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var e Event
 	if !request.Bind(w, r, &e) {
@@ -51,7 +51,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusAccepted, created)
 }
 
-// List handles GET /api/v1/events.
+// List handles GET /api/v1/events/list.
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {

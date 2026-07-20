@@ -32,6 +32,6 @@ func New(db *sql.DB, disp *dispatcher.Dispatcher, log *slog.Logger) *Module {
 // authenticate guards the route, requiring a valid bearer token; the
 // caller (see router.New) is expected to pass auth.Authenticate(token).
 func (m *Module) RegisterRoutes(mux *http.ServeMux, authenticate func(http.Handler) http.Handler) {
-	mux.Handle("POST /api/v1/events", authenticate(http.HandlerFunc(m.handler.Create)))
-	mux.Handle("GET /api/v1/events", authenticate(http.HandlerFunc(m.handler.List)))
+	mux.Handle("POST /api/v1/events/create", authenticate(http.HandlerFunc(m.handler.Create)))
+	mux.Handle("GET /api/v1/events/list", authenticate(http.HandlerFunc(m.handler.List)))
 }

@@ -311,7 +311,7 @@ Set both as environment variables — see [Configuration](#configuration) for ho
 
 # Adapters
 
-A web application, SaaS platform or any other system that already speaks Noticoel's Event model doesn't need an adapter — it publishes straight to `POST /api/v1/events` (see [Examples](#examples)).
+A web application, SaaS platform or any other system that already speaks Noticoel's Event model doesn't need an adapter — it publishes straight to `POST /api/v1/events/create` (see [Examples](#examples)).
 
 Third-party systems with their own webhook format go through a dedicated adapter instead, which converts their native payload into an Event:
 
@@ -350,7 +350,7 @@ curl -X POST http://localhost:8080/api/v1/adapters/forgejo \
 A business application, as a native Event producer, reporting a domain event directly:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/events \
+curl -X POST http://localhost:8080/api/v1/events/create \
   -H "Authorization: Bearer $NOTICOEL_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
